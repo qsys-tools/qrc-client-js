@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"target": "ES6",
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"noEmit": true,
+		"allowSyntheticDefaultImports": true,
+		"strict": true,
+		"declaration": true,
+		"outDir": "./dist"
+	},
+	"include": [
+		"integration-tests",
+		"src",
+		"@types",
+		"_register.js"
+	]
+}

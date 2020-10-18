@@ -1,0 +1,91 @@
+{
+	"name": "qsys-qrc-client",
+	"version": "0.0.0",
+	"description": "An external control client for QSC Q-SYS cores, written in Node.js.",
+	"license": "MIT",
+	"repository": "qsys-tools/qrc-client-js",
+	"author": {
+		"name": "James Talmage",
+		"email": "james.talmage@jrtechnical.com",
+		"url": "http://jrtechnical.com"
+	},
+	"engines": {
+		"node": ">=12"
+	},
+	"scripts": {
+		"prepublishOnly": "tsc --project tsconfig.production.json",
+		"test": "xo && tsc && ava"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"Q-SYS",
+		"QSC",
+		"control",
+		"client"
+	],
+	"dependencies": {
+		"any-observable": "^0.5.1",
+		"esm": "^3.2.25",
+		"pump": "^3.0.0",
+		"split2": "^3.2.2",
+		"supports-color": "^7.2.0",
+		"through2": "^4.0.2"
+	},
+	"devDependencies": {
+		"@ava/babel": "^1.0.1",
+		"@babel/cli": "^7.12.1",
+		"@babel/core": "^7.12.3",
+		"@babel/node": "^7.12.1",
+		"@babel/plugin-proposal-class-properties": "^7.12.1",
+		"@babel/plugin-proposal-object-rest-spread": "^7.12.1",
+		"@babel/polyfill": "^7.12.1",
+		"@babel/preset-env": "^7.12.1",
+		"@babel/preset-typescript": "^7.12.1",
+		"@babel/register": "^7.12.1",
+		"@types/is-ci": "^2.0.0",
+		"@types/node": "^14.11.10",
+		"@types/p-event": "^1.3.1",
+		"@types/split2": "^2.1.6",
+		"@types/supports-color": "^5.3.0",
+		"@types/through2": "^2.0.36",
+		"@types/zen-observable": "^0.8.1",
+		"@typescript-eslint/eslint-plugin": "^4.4.1",
+		"@typescript-eslint/parser": "^4.4.1",
+		"ava": "^3.13.0",
+		"delay": "^4.4.0",
+		"eslint-config-xo-typescript": "^0.34.1",
+		"is-ci": "^2.0.0",
+		"p-event": "^4.2.0",
+		"typescript": "^4.0.3",
+		"xo": "^0.34.0",
+		"zen-observable": "^0.8.15"
+	},
+	"ava": {
+		"files": [
+			"src/*.test.{ts,js}",
+			"src/**/*.test.{ts,js}",
+			"integration-tests/*.test.{ts,js}"
+		],
+		"require": [
+			"./_register"
+		],
+		"babel": {
+			"extensions": [
+				"ts",
+				"js"
+			]
+		}
+	},
+	"xo": {
+		"extends": [
+			"xo-typescript"
+		],
+		"env": [
+			"node",
+			"es6"
+		]
+	}
+}
