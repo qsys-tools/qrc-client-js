@@ -1,6 +1,6 @@
 {
 	"name": "qsys-qrc-client",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "An external control client for QSC Q-SYS cores, written in Node.js.",
 	"license": "MIT",
 	"repository": "qsys-tools/qrc-client-js",
