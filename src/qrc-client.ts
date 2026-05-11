@@ -25,15 +25,15 @@ export default class QrcClient extends SocketWrapper {
 
 	readonly socket: Socket = new Socket();
 
-	protected readonly _forwardedEvents: any = {};
-
 	private readonly _map = new UidMap<ResponseHandler<any>>();
 
 	constructor() {
 		super();
 
 		for (const eventName of ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']) {
-			this._forwardedEvents[eventName] = (...args: any[]) => this.emit(eventName, ...args);
+			this._forwardedEvents[eventName] = (...args: unknown[]) => {
+				this.emit(eventName, ...args);
+			};
 		}
 
 		this.once('error', () => {
@@ -107,6 +107,7 @@ export default class QrcClient extends SocketWrapper {
 		return new AnyObservable<AutoPollUpdate>(observer => {
 			const handler = ({method, params}: JsonRpcRequest): void => {
 				if (method === 'ChangeGroup.Poll') {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 					const update = params as unknown as AutoPollUpdate;
 					if (update.Id === groupId && update.Changes && (update.Changes.length > 0)) {
 						observer.next(update);
@@ -129,9 +130,12 @@ export default class QrcClient extends SocketWrapper {
 	}
 
 	private readonly _data = (data: any) => {
-		if (data.result || data.error) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		if (data.result ?? data.error) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 			const response = (data as JsonRpcResponse<any>);
 			if (typeof response.id === 'number') {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
 				const callback: ResponseHandler<any> | undefined = this._map.pull(data.id);
 				if (callback) {
 					if (response.error) {
@@ -142,6 +146,7 @@ export default class QrcClient extends SocketWrapper {
 				}
 			}
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 			const request = (data as JsonRpcRequest);
 			this.emit('request', request);
 		}

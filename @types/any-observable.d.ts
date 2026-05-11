@@ -1,6 +1,6 @@
 declare module 'any-observable' {
-	const OC: ObservableConstructor;
-	export default OC;
+	const observableConstructor: ObservableConstructor;
+	export default observableConstructor;
 
 	export type Observer<T> = {
 		// Receives the subscription object when `subscribe` is called

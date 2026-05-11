@@ -3,12 +3,13 @@ import {objectTransform} from 'through2';
 import split from 'split2';
 import {inspect} from './utils.js';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const NULL_CHAR = '\u0000';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const DEBUG = false;
 
 // Converts a "Null Terminated JSON" byte stream into an object stream.
-// @ts-expect-error
-export const nullJsonDecoder = (): Transform => split(NULL_CHAR, JSON.parse, {trailing: false});
+export const nullJsonDecoder = (): Transform => split(NULL_CHAR, JSON.parse);
 
 // Converts an object stream into a "Null Terminated JSON" byte stream.
 export const nullJsonEncoder = (): Transform => objectTransform(async function * (src: AsyncIterable<any>) {
@@ -37,7 +38,7 @@ export const addRpcVersion = (): Transform => objectTransform(async function * (
 });
 
 export const timeout = (timeout: number, cb: () => void): Transform => {
-	let id: any;
+	let id: NodeJS.Timeout;
 
 	const reset = (): void => {
 		clearTimeout(id);

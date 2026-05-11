@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
 	type ComponentControlSetSpec, type ComponentStatus, type ControlSetSpec, type ControlStatus, type EngineStatus, type CmdP,
 } from './types.js';
@@ -22,14 +23,14 @@ export const getNamedControls = (...controlNames: string[]): CmdP<ControlStatus[
 export const setNamedControl = (controlName: string, spec: ControlSetSpec | boolean | string | number): CmdP<ControlStatus> => {
 	const t = typeof spec;
 
-	if (t === 'string' || t === 'boolean' || t === 'number') {
-		spec = {Value: (spec as number | boolean | string)};
+	if (typeof spec === 'number' || typeof spec === 'boolean' || typeof spec === 'string') {
+		spec = {Value: spec};
 	}
 
 	return {
 		method: 'Control.Set',
 		params: {
-			...(spec as ControlSetSpec),
+			...spec,
 			Name: controlName,
 		},
 	};

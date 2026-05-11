@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"esModuleInterop": true,
-		"target": "es2023",
+		"target": "es2024",
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
 		"noEmit": true,

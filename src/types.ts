@@ -26,7 +26,7 @@ export type JsonRpcResponse<T> = {
 	error?: JsonRpcError;
 };
 
-export type JsonRpcError = {
+export type JsonRpcError = Error & {
 	code: number;
 	message: string;
 	data?: any;
