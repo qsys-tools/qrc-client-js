@@ -1,22 +1,22 @@
-import {Readable, Writable} from 'stream';
-import {Socket} from 'net';
+import {type Readable, type Writable} from 'node:stream';
+import {Socket} from 'node:net';
 import pump from 'pump';
-// @ts-expect-error
 import AnyObservable from 'any-observable';
 import {
-	Observable,
-	AutoPollUpdate,
-	JsonRpcError,
-	JsonRpcRequest,
-	JsonRpcResponse,
-	ResponseHandler,
-	CMDp, Observer
-} from './types';
-import {autoPollGroup, destroyGroup, noOp} from './commands';
-import {log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout} from './lib/stream-transforms';
-import UidMap from './lib/uid-map';
-import QrcError from './lib/qrc-error';
-import SocketWrapper from './lib/socket-wrapper';
+	type AutoPollUpdate,
+	type JsonRpcError,
+	type JsonRpcRequest,
+	type JsonRpcResponse,
+	type ResponseHandler,
+	type CmdP
+} from './types.js';
+import {autoPollGroup, destroyGroup, noOp} from './commands.js';
+import {
+	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
+} from './lib/stream-transforms.js';
+import UidMap from './lib/uid-map.js';
+import QrcError from './lib/qrc-error.js';
+import SocketWrapper from './lib/socket-wrapper.js';
 
 export default class QrcClient extends SocketWrapper {
 	readonly readStream: Readable;
@@ -32,11 +32,13 @@ export default class QrcClient extends SocketWrapper {
 	constructor() {
 		super();
 
-		['close', 'connect', 'end', 'ready', 'lookup', 'timeout'].forEach(eventName => {
+		for (const eventName of ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']) {
 			this._forwardedEvents[eventName] = (...args: any[]) => this.emit(eventName, ...args);
-		});
+		}
 
-		this.once('error', () => this.destroy());
+		this.once('error', () => {
+			this.destroy();
+		});
 
 		this._connectForwardedEvents(this.socket);
 
@@ -45,10 +47,10 @@ export default class QrcClient extends SocketWrapper {
 		let finished = false;
 		const errors: any[] = [];
 
-		const finish = (err: any): void => {
-			if (err && !errors.includes(err)) {
-				errors.push(err);
-				this.emit('error', err);
+		const finish = (error: any): void => {
+			if (error && !errors.includes(error)) {
+				errors.push(error);
+				this.emit('error', error);
 			}
 
 			if (finished) {
@@ -56,14 +58,14 @@ export default class QrcClient extends SocketWrapper {
 			}
 
 			finished = true;
-			this.emit('finish', err);
+			this.emit('finish', error);
 		};
 
 		pump(
 			this.socket,
 			nullJsonDecoder(),
 			this.readStream,
-			finish
+			finish,
 		);
 
 		this.writeStream = addRpcVersion();
@@ -75,7 +77,7 @@ export default class QrcClient extends SocketWrapper {
 			log('sending: '),
 			nullJsonEncoder(),
 			this.socket,
-			finish
+			finish,
 		);
 
 		this.readStream.on('data', this._data);
@@ -87,13 +89,13 @@ export default class QrcClient extends SocketWrapper {
 		this._disconnectForwardedEvents(this.socket);
 	};
 
-	async send<T>(command: CMDp<T>): Promise<T> {
+	async send<T>(command: CmdP<T>): Promise<T> {
 		return new Promise((resolve, reject) => {
-			const id = this._map.put((err: JsonRpcError | null, result?: T): void => {
-				if (err) {
-					reject(err);
+			const id = this._map.put((error: JsonRpcError | undefined, result?: T): void => {
+				if (error) {
+					reject(error);
 				} else {
-					resolve(result);
+					resolve(result!);
 				}
 			});
 
@@ -101,8 +103,8 @@ export default class QrcClient extends SocketWrapper {
 		});
 	}
 
-	pollGroup(groupId: string, {rate = 0.2, autoDestroy = false}: {rate?: number; autoDestroy?: boolean} = {}): Observable<AutoPollUpdate> {
-		return new AnyObservable((observer: Observer<AutoPollUpdate>) => {
+	pollGroup(groupId: string, {rate = 0.2, autoDestroy = false}: {rate?: number; autoDestroy?: boolean} = {}) {
+		return new AnyObservable<AutoPollUpdate>((observer) => {
 			const handler = ({method, params}: JsonRpcRequest): void => {
 				if (method === 'ChangeGroup.Poll') {
 					const update = params as unknown as AutoPollUpdate;
@@ -135,7 +137,7 @@ export default class QrcClient extends SocketWrapper {
 					if (response.error) {
 						callback(new QrcError(response.error));
 					} else {
-						callback(null, response.result);
+						callback(undefined, response.result);
 					}
 				}
 			}

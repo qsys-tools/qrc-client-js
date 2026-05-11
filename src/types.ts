@@ -1,144 +1,79 @@
-export interface CMDp<T> {
+export type CmdP<T> = {
 	method: string;
 	params?: Record<string, any>;
-}
+};
 
-export interface StatusCode {
+export type StatusCode = {
 	Code: number;
 	String: string;
-}
+};
 
-export interface HasStatusCode {
+export type HasStatusCode = {
 	Status: StatusCode;
-}
+};
 
-export interface JsonRpcRequest {
+export type JsonRpcRequest = {
 	jsonrpc?: '2.0';
 	id?: number | string;
 	method: string;
 	params?: Record<string, any>;
-}
+};
 
-export interface JsonRpcResponse<T> {
+export type JsonRpcResponse<T> = {
 	jsonrpc: '2.0';
 	id?: number | string;
 	result?: T;
 	error?: JsonRpcError;
-}
+};
 
-export interface JsonRpcError {
+export type JsonRpcError = {
 	code: number;
 	message: string;
 	data?: any;
-}
+};
 
-export interface EngineStatus extends HasStatusCode {
+export type EngineStatus = {
 	Platform: string;
 	State: 'Idle' | 'Active' | 'Standby';
 	DesignName: string;
 	DesignCode: string;
 	IsRedundant: boolean;
 	IsEmulator: boolean;
-}
+} & HasStatusCode;
 
-export type ResponseHandler<T> = (err: JsonRpcError | null, response?: T) => void;
+export type ResponseHandler<T> = (error: JsonRpcError | undefined, response?: T) => void;
 
-export interface ControlStatus {
+export type ControlStatus = {
 	Name: string;
 	Value: number | string | boolean;
 	String: string;
 	Position: number;
-}
+};
 
-export interface ControlSetSpec {
+export type ControlSetSpec = {
 	Value?: number | string | boolean;
 	Position?: number;
 	Ramp?: number;
-}
+};
 
-export interface ComponentStatus {
+export type ComponentStatus = {
 	Name: string;
 	Controls: ControlStatus[];
-}
+};
 
-export interface ComponentControlSetSpec extends ControlSetSpec {
+export type ComponentControlSetSpec = {
 	Name: string;
-}
+} & ControlSetSpec;
 
-export interface AutoPollUpdate {
+export type AutoPollUpdate = {
 	Id: string;
 	Changes: AutoPollChange[];
-}
+};
 
-export interface AutoPollChange {
+export type AutoPollChange = {
 	Component?: string;
 	Name: string;
 	String: string;
 	Value: number | string | boolean;
 	Position: number;
-}
-
-// T39 - Observable - https://github.com/tc39/proposal-observable
-
-export interface Observer<T> {
-	// Receives the subscription object when `subscribe` is called
-	start(subscription: Subscription): void;
-
-	// Receives the next value in the sequence
-	next(value: T): void;
-
-	// Receives the sequence error
-	error(errorValue: Error): void;
-
-	// Receives a completion notification
-	complete(): void;
-}
-
-export interface ObservableConstructor {
-	new <T>(subscriber: SubscriberFunction<T>): Observable<T>;
-
-	// Converts items to an Observable
-	of<T>(...items: T[]): Observable<T>;
-
-	// Converts an observable or iterable to an Observable
-	from<T>(observable: Observable<T> | Iterable<T>): Observable<T>;
-}
-
-export interface Observable<T> {
-	// Subscribes to the sequence with an observer
-	subscribe(observer: Observer<T>): Subscription;
-
-	// Subscribes to the sequence with callbacks
-	subscribe(
-		onNext: (value: T) => void,
-		onError?: (errorValue: Error) => void,
-		onComplete?: () => void
-	): Subscription;
-
-	// Returns itself
-	[Symbol.observable](): Observable<T>;
-}
-
-export interface Subscription {
-	// A boolean value indicating whether the subscription is closed
-	readonly closed: boolean;
-
-	// Cancels the subscription
-	unsubscribe(): void;
-}
-
-export type SubscriberFunction<T> = (observer: SubscriptionObserver<T>) => () => void | Subscription;
-
-export interface SubscriptionObserver<T> {
-	// A boolean value indicating whether the subscription is closed
-	readonly closed: boolean;
-
-	// Sends the next value in the sequence
-	next(value: T): void;
-
-	// Sends the sequence error
-	error(errorValue: Error): void;
-
-	// Sends the completion notification
-	complete(): void;
-}
+};

@@ -1,5 +1,6 @@
-import QrcClient from './qrc-client';
-export * from './types';
-export * as commands from './commands';
-export * from './commands';
-export default QrcClient;
+
+export type * from './types.js';
+export * as commands from './commands.js';
+export * from './commands.js';
+
+export {default} from './qrc-client.js';

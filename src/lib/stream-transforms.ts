@@ -1,8 +1,7 @@
-import through2 from 'through2';
+import {objectTransform} from 'through2';
 import split from 'split2';
-import {inspect} from './utils';
-
-type Transform = import('stream').Transform;
+import {inspect} from './utils.js';
+import {type Transform} from 'node:stream';
 
 const NULL_CHAR = '\u0000';
 const DEBUG = false;
@@ -12,26 +11,28 @@ const DEBUG = false;
 export const nullJsonDecoder = (): Transform => split(NULL_CHAR, JSON.parse, {trailing: false});
 
 // Converts an object stream into a "Null Terminated JSON" byte stream.
-export const nullJsonEncoder = (): Transform => through2.obj(function (object, enc, cb) {
-	this.push(JSON.stringify(object));
-	this.push(NULL_CHAR);
-	cb();
+export const nullJsonEncoder = ():Transform => objectTransform(async function * (src: AsyncIterable<any>) {
+	for await (const object of src) {
+		yield JSON.stringify(object);
+		yield NULL_CHAR;
+	}
 });
 
 // Spy on the stream (for debugging). `prefix` will be prepended in the logs.
-export const log = (prefix = '', debug = DEBUG): Transform => through2.obj(function (chunk, enc, cb) {
-	if (debug) {
-		console.log(prefix, inspect(chunk));
+export const log = (prefix = '', debug = DEBUG): Transform => objectTransform(async function * (src: AsyncIterable<any>){
+	for await (const object of src) {
+		if (debug) {
+			console.log(prefix, inspect(object));
+		}
+		yield object;
 	}
-
-	this.push(chunk, enc);
-	cb();
 });
 
 // Embeds the RPC version on the command object (so upstream objects don't have to).
-export const addRpcVersion = (): Transform => through2.obj(function (object, enc, cb): void {
-	this.push({jsonrpc: '2.0', ...object});
-	cb();
+export const addRpcVersion = (): Transform => objectTransform(async function * (src: AsyncIterable<any>) {
+	for await (const object of src) {
+		yield {jsonrpc: '2.0', ...object};
+	}
 });
 
 export const timeout = (timeout: number, cb: () => void): Transform => {
@@ -47,10 +48,11 @@ export const timeout = (timeout: number, cb: () => void): Transform => {
 		cb();
 	};
 
-	const stream = through2.obj(function (object, enc, cb) {
-		this.push(object, enc);
-		reset();
-		cb();
+	const stream = objectTransform(async function * (src: AsyncIterable<any>) {
+		for await (const object of src) {
+			reset();
+			yield object;
+		}
 	});
 
 	stream.on('close', () => {

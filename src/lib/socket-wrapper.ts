@@ -10,7 +10,7 @@ interface Connectable {
 export default abstract class SocketWrapper extends EventEmitter implements Connectable {
 	abstract readonly socket: Socket;
 
-	protected abstract readonly _forwardedEvents: any = {};
+	protected readonly _forwardedEvents: any = {};
 
 	get bufferSize(): number {
 		return this.socket.bufferSize;
@@ -28,11 +28,11 @@ export default abstract class SocketWrapper extends EventEmitter implements Conn
 		return this.socket.connecting;
 	}
 
-	get localAddress(): string {
+	get localAddress(): string | undefined {
 		return this.socket.localAddress;
 	}
 
-	get localPort(): number {
+	get localPort(): number | undefined {
 		return this.socket.localPort;
 	}
 

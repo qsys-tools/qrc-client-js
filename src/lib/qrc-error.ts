@@ -1,4 +1,4 @@
-import {JsonRpcError} from '../types';
+import {type JsonRpcError} from '../types.js';
 
 class QrcError extends Error {
 	readonly code: number;
