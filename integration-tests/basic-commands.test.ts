@@ -1,10 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-import {ExecutionContext, serial as rawTest} from 'ava'; // eslint-disable-line ava/use-test
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import fs from 'node:fs';
+import path from 'node:path';
+import ava, {type ExecutionContext} from 'ava'; // eslint-disable-line ava/use-test
 import delay from 'delay';
 import isCI from 'is-ci';
-import pEvent from 'p-event';
-import QrcClient from '../src/qrc-client';
+import {pEvent} from 'p-event';
+import QrcClient from '../src/qrc-client.js';
 import {
 	getStatus,
 	logon,
@@ -18,15 +21,15 @@ import {
 	invalidateGroup,
 	clearGroup,
 	destroyGroup,
-	removeNamedControlsFromGroup
-} from '../src/commands';
+	removeNamedControlsFromGroup,
+} from '../src/commands.js';
 
-const test = isCI ? rawTest.skip : rawTest;
+const test = isCI ? ava.serial.skip : ava.serial;
 
 let connectionJSON;
 
 try {
-	connectionJSON = fs.readFileSync(path.join(__dirname, 'design-location.json'), 'utf8');
+	connectionJSON = fs.readFileSync(path.join(import.meta.dirname, 'design-location.json'), 'utf8');
 } catch {
 	connectionJSON = '{"host": "127.0.0.1", "port": 1710}';
 }
@@ -35,7 +38,10 @@ const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => any): Promise<any> => {
 	const client = new QrcClient();
-	client.on('error', error => t.fail(`Error was thrown: ${String(error)}`));
+	client.on('error', error => {
+		console.error(error);
+		t.fail(`Error was thrown: ${String(error)}`);
+	});
 
 	const connectEvent = pEvent(client, 'connect');
 	const closeEvent = pEvent(client, 'close');
@@ -119,7 +125,7 @@ test('getComponentControls', withEmulator, async (t: ExecutionContext, client: Q
 test('setComponentControls', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
 	t.true(await client.send(setComponentControls('MyGain', [
 		{Name: 'mute', Value: 1},
-		{Name: 'gain', Position: 1}
+		{Name: 'gain', Position: 1},
 	])));
 
 	const {Controls: [gain]} = await client.send(getComponentControls('MyGain', ['gain']));
@@ -182,7 +188,8 @@ test('clearGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) 
 test('destroyGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
 	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainBypass'])));
 	t.true(await client.send(destroyGroup('my group')));
-	await t.throwsAsync(async () => client.send(pollGroup('my group')), {message: /group.*does not exist/}, 'foo');
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+	await t.throwsAsync(async () => client.send(pollGroup('my group')), {message: /group.*does not exist/v}, 'foo');
 });
 
 test('removeNamedControlsFromGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
@@ -200,8 +207,10 @@ test('pollGroups', withEmulator, async (t: ExecutionContext, client: QrcClient) 
 
 	const observable = client.pollGroup('my group');
 
-	const changes: any = [];
-	observable.subscribe(value => changes.push(value.Changes));
+	const changes: unknown[] = [];
+	observable.subscribe(value => {
+		changes.push(value.Changes);
+	});
 
 	await delay(500);
 
@@ -211,11 +220,17 @@ test('pollGroups', withEmulator, async (t: ExecutionContext, client: QrcClient) 
 
 	t.deepEqual(changes, [
 		[
-			{Name: 'GainGain', String: '-100dB', Value: -100, Position: 0},
-			{Name: 'GainBypass', String: 'no', Value: 0, Position: 0}
+			{
+				Name: 'GainGain', String: '-100dB', Value: -100, Position: 0,
+			},
+			{
+				Name: 'GainBypass', String: 'no', Value: 0, Position: 0,
+			},
 		],
 		[
-			{Name: 'GainGain', String: '20.0dB', Value: 20, Position: 1}
-		]
+			{
+				Name: 'GainGain', String: '20.0dB', Value: 20, Position: 1,
+			},
+		],
 	]);
 });

@@ -55,9 +55,9 @@ class UidMap<T> {
 	}
 
 	forEach(callbackFn: (value: T, key: number, map: UidMap<T>) => void, thisArg?: any): void {
-		this._map.forEach((value, key) => {
+		for (const [key, value] of this._map.entries()) {
 			callbackFn.call(thisArg, value, key, this);
-		});
+		}
 	}
 }
 
