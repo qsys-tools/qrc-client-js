@@ -1,4 +1,5 @@
-/* eslint-disable  @typescript-eslint/dot-notation */
+/* eslint-disable @typescript-eslint/dot-notation */
+/* eslint-disable unicorn/no-array-method-this-argument */
 import test from 'ava';
 import UidMap from './uid-map.js';
 
@@ -128,10 +129,14 @@ test('forEach', t => {
 
 	map.put('foo');
 
-	map.forEach(function (this: any, value, key, map) {
-		t.is(value, 'foo');
-		t.is(key, 1);
-		t.is(map, map);
-		t.is(this, thisArg);
-	}, thisArg);
+	// eslint-disable-next-line unicorn/no-array-for-each
+	map.forEach(
+		function (this: any, value, key, map) {
+			t.is(value, 'foo');
+			t.is(key, 1);
+			t.is(map, map);
+			t.is(this, thisArg); // eslint-disable unicorn/no-array-method-this-argument
+		},
+		thisArg,
+	);
 });

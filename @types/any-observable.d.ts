@@ -2,7 +2,7 @@ declare module 'any-observable' {
 	const OC: ObservableConstructor;
 	export default OC;
 
-	export interface Observer<T> {
+	export type Observer<T> = {
 		// Receives the subscription object when `subscribe` is called
 		start(subscription: Subscription): void;
 
@@ -14,19 +14,19 @@ declare module 'any-observable' {
 
 		// Receives a completion notification
 		complete(): void;
-	}
+	};
 
-	export interface ObservableConstructor {
-		new <T>(subscriber: SubscriberFunction<T>): ObservableInstance<T>;
+	export type ObservableConstructor = {
+		new<T>(subscriber: SubscriberFunction<T>): ObservableInstance<T>;
 
 		// Converts items to an Observable
 		of<T>(...items: T[]): ObservableInstance<T>;
 
 		// Converts an observable or iterable to an Observable
 		from<T>(observable: ObservableInstance<T> | Iterable<T>): ObservableInstance<T>;
-	}
+	};
 
-	export interface ObservableInstance<T> {
+	export type ObservableInstance<T> = {
 		// Subscribes to the sequence with an observer
 		subscribe(observer: Observer<T>): Subscription;
 
@@ -39,19 +39,19 @@ declare module 'any-observable' {
 
 		// Returns itself
 		[Symbol.observable](): ObservableInstance<T>;
-	}
+	};
 
-	export interface Subscription {
+	export type Subscription = {
 		// A boolean value indicating whether the subscription is closed
 		readonly closed: boolean;
 
 		// Cancels the subscription
 		unsubscribe(): void;
-	}
+	};
 
 	export type SubscriberFunction<T> = (observer: SubscriptionObserver<T>) => () => void | Subscription;
 
-	export interface SubscriptionObserver<T> {
+	export type SubscriptionObserver<T> = {
 		// A boolean value indicating whether the subscription is closed
 		readonly closed: boolean;
 
@@ -63,5 +63,5 @@ declare module 'any-observable' {
 
 		// Sends the completion notification
 		complete(): void;
-	}
+	};
 }

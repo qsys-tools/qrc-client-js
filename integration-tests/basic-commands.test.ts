@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import ava,  {type ExecutionContext} from 'ava'; // eslint-disable-line ava/use-test
+import ava, {type ExecutionContext} from 'ava'; // eslint-disable-line ava/use-test
 import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
@@ -37,7 +37,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	const client = new QrcClient();
 	client.on('error', error => {
 		console.error(error);
-		t.fail(`Error was thrown: ${String(error)}`)
+		t.fail(`Error was thrown: ${String(error)}`);
 	});
 
 	const connectEvent = pEvent(client, 'connect');

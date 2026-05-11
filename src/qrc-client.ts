@@ -8,7 +8,7 @@ import {
 	type JsonRpcRequest,
 	type JsonRpcResponse,
 	type ResponseHandler,
-	type CmdP
+	type CmdP,
 } from './types.js';
 import {autoPollGroup, destroyGroup, noOp} from './commands.js';
 import {
@@ -104,7 +104,7 @@ export default class QrcClient extends SocketWrapper {
 	}
 
 	pollGroup(groupId: string, {rate = 0.2, autoDestroy = false}: {rate?: number; autoDestroy?: boolean} = {}) {
-		return new AnyObservable<AutoPollUpdate>((observer) => {
+		return new AnyObservable<AutoPollUpdate>(observer => {
 			const handler = ({method, params}: JsonRpcRequest): void => {
 				if (method === 'ChangeGroup.Poll') {
 					const update = params as unknown as AutoPollUpdate;

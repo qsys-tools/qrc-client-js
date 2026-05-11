@@ -1,7 +1,7 @@
+import {type Transform} from 'node:stream';
 import {objectTransform} from 'through2';
 import split from 'split2';
 import {inspect} from './utils.js';
-import {type Transform} from 'node:stream';
 
 const NULL_CHAR = '\u0000';
 const DEBUG = false;
@@ -11,7 +11,7 @@ const DEBUG = false;
 export const nullJsonDecoder = (): Transform => split(NULL_CHAR, JSON.parse, {trailing: false});
 
 // Converts an object stream into a "Null Terminated JSON" byte stream.
-export const nullJsonEncoder = ():Transform => objectTransform(async function * (src: AsyncIterable<any>) {
+export const nullJsonEncoder = (): Transform => objectTransform(async function * (src: AsyncIterable<any>) {
 	for await (const object of src) {
 		yield JSON.stringify(object);
 		yield NULL_CHAR;
@@ -19,11 +19,12 @@ export const nullJsonEncoder = ():Transform => objectTransform(async function * 
 });
 
 // Spy on the stream (for debugging). `prefix` will be prepended in the logs.
-export const log = (prefix = '', debug = DEBUG): Transform => objectTransform(async function * (src: AsyncIterable<any>){
+export const log = (prefix = '', debug = DEBUG): Transform => objectTransform(async function * (src: AsyncIterable<any>) {
 	for await (const object of src) {
 		if (debug) {
 			console.log(prefix, inspect(object));
 		}
+
 		yield object;
 	}
 });

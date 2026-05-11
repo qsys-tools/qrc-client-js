@@ -3,7 +3,7 @@ import {type JsonRpcError} from '../types.js';
 class QrcError extends Error {
 	readonly code: number;
 
-	readonly data?: any;
+	readonly data?: unknown;
 
 	constructor({code, message, data}: JsonRpcError) {
 		super(message);
@@ -13,7 +13,7 @@ class QrcError extends Error {
 	}
 
 	toString(): string {
-		const object = Object(this); // eslint-disable-line unicorn/new-for-builtins
+		const object: unknown = Object(this); // eslint-disable-line unicorn/new-for-builtins
 		if (object !== this) {
 			throw new TypeError('Error creating QrcError');
 		}

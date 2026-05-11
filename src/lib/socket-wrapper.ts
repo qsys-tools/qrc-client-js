@@ -1,19 +1,25 @@
-import {EventEmitter} from 'events';
-import {AddressInfo, Socket, SocketConnectOpts} from 'net';
+import type {AddressInfo, Socket, SocketConnectOpts} from 'node:net';
+import EventEmitter from 'node:events';
 
-interface Connectable {
-	connect(portPathOrOptions: number | string | SocketConnectOpts, connectionListener?: () => void): this;
+type Connectable = {
+	connect(portPathOrOptions: number | string | SocketConnectOpts, connectionListener?: () => void): Connectable;
 
-	connect(port: number, host: string, connectionListener?: () => void): this;
-}
+	connect(port: number, host: string, connectionListener?: () => void): Connectable;
+};
 
+// eslint-disable-next-line unicorn/prefer-event-target
 export default abstract class SocketWrapper extends EventEmitter implements Connectable {
 	abstract readonly socket: Socket;
 
-	protected readonly _forwardedEvents: any = {};
+	protected readonly _forwardedEvents: Record<string, (...args: any[]) => void> = {};
 
 	get bufferSize(): number {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		return this.socket.bufferSize;
+	}
+
+	get writableLength(): number {
+		return this.socket.writableLength;
 	}
 
 	get bytesRead(): number {
@@ -52,8 +58,14 @@ export default abstract class SocketWrapper extends EventEmitter implements Conn
 		return this.socket.address();
 	}
 
-	connect(arg0: any, ...args: any[]): this {
-		this.socket.connect(arg0, ...args);
+	connect(options: SocketConnectOpts, connectionListener?: () => void): this;
+	connect(port: number, host: string, connectionListener?: () => void): this;
+	connect(port: number, connectionListener?: () => void): this;
+	connect(path: string, connectionListener?: () => void): this;
+	connect(...args: any[]): this {
+		// @ts-expect-error just passing args
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		this.socket.connect(...args);
 		return this;
 	}
 
