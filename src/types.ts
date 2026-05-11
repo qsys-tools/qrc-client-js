@@ -76,4 +76,5 @@ export type AutoPollChange = {
 	String: string;
 	Value: number | string | boolean;
 	Position: number;
+	Strings?: string[];
 };

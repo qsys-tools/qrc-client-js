@@ -17,6 +17,10 @@ import {
 import UidMap from './lib/uid-map.js';
 import QrcError from './lib/qrc-error.js';
 import SocketWrapper from './lib/socket-wrapper.js';
+import type {ObservableConstructor} from './lib/observable.js';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/naming-convention
+const Observable = AnyObservable as ObservableConstructor;
 
 export default class QrcClient extends SocketWrapper {
 	readonly readStream: Readable;
@@ -104,7 +108,7 @@ export default class QrcClient extends SocketWrapper {
 	}
 
 	pollGroup(groupId: string, {rate = 0.2, autoDestroy = false}: {rate?: number; autoDestroy?: boolean} = {}) {
-		return new AnyObservable<AutoPollUpdate>(observer => {
+		return new Observable<AutoPollUpdate>(observer => {
 			const handler = ({method, params}: JsonRpcRequest): void => {
 				if (method === 'ChangeGroup.Poll') {
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
