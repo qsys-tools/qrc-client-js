@@ -52,9 +52,10 @@
 		"is-ci": "^4.1.0",
 		"p-event": "^7.1.0",
 		"tsimp": "^2.0.12",
-		"typescript": "^5.1.0",
+		"typescript": "^6.0.3",
 		"xo": "^2.0.2",
-		"zen-observable": "^0.10.0"
+		"zen-observable": "^0.10.0",
+		"zod": "^4.4.3"
 	},
 	"ava": {
 		"files": [
