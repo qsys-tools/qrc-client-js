@@ -51,7 +51,6 @@
 		"eslint-config-xo": "^0.51.0",
 		"is-ci": "^4.1.0",
 		"p-event": "^7.1.0",
-		"tsimp": "^2.0.12",
 		"typescript": "^6.0.3",
 		"xo": "^2.0.2",
 		"zen-observable": "^0.10.0",

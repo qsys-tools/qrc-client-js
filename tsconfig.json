@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"rootDir": "./src",
 		"esModuleInterop": true,
 		"target": "es2024",
 		"module": "nodenext",

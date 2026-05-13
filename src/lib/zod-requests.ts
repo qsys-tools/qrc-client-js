@@ -63,25 +63,8 @@ const changeGroupParamValidators = {
 const crossPointSpec = z.string();
 const rampSpec = z.number().optional();
 
-const mixerGainInputs = withName({
-	Inputs: crossPointSpec,
-	Value: z.number(),
-	Ramp: rampSpec,
-});
-
 const mixerMuteInputs = withName({
 	Inputs: crossPointSpec,
-	Value: z.boolean(),
-});
-
-const mixerGainOutputs = withName({
-	Outputs: crossPointSpec,
-	Value: z.number(),
-	Ramp: rampSpec,
-});
-
-const mixerMuteOutputs = withName({
-	Outputs: crossPointSpec,
 	Value: z.boolean(),
 });
 
@@ -103,11 +86,22 @@ const mixerParamValidators = {
 	SetCrossPointDelay: mixerGainIO,
 	SetCrossPointMute: mixerMuteIO,
 	SetCrossPointSolo: mixerMuteIO,
-	SetInputGain: mixerGainInputs,
+	SetInputGain: withName({
+		Inputs: crossPointSpec,
+		Value: z.number(),
+		Ramp: rampSpec,
+	}),
 	SetInputMute: mixerMuteInputs,
 	SetInputSolo: mixerMuteInputs,
-	SetOutputGain: mixerGainOutputs,
-	SetOutputMute: mixerMuteIO,
+	SetOutputGain: withName({
+		Outputs: crossPointSpec,
+		Value: z.number(),
+		Ramp: rampSpec,
+	}),
+	SetOutputMute: withName({
+		Outputs: crossPointSpec,
+		Value: z.boolean(),
+	}),
 	SetCueMute: withName({
 		Cues: crossPointSpec,
 		Value: z.boolean(),
@@ -172,3 +166,5 @@ const copyValidators = ([key, value]) => {
 Object.entries(basicParamValidators).forEach(copyValidators);
 Object.entries(mixerParamValidators).forEach(copyValidators);
 Object.entries(changeGroupParamValidators).forEach(copyValidators);
+
+export type ParamTypeMap = {[key in CommandMethods]: InferCommandParams<key>};
