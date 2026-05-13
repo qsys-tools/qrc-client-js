@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable unicorn/no-array-method-this-argument */
 import test from 'ava';
-import UidMap from './uid-map.js';
+import UidMap from './uid-map.ts';
 
 test('you can get what you put in', t => {
 	const map = new UidMap<string>();

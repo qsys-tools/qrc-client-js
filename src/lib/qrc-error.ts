@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {type JsonRpcError} from '../types.js';
+import {type JsonRpcError} from '../types.ts';
 
 export const ErrorCodes = {
 	[-32_700]: 'Parse error.', // Invalid JSON was received by the server.

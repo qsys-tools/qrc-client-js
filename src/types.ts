@@ -1,3 +1,5 @@
+import type QrcError from './lib/qrc-error.ts';
+
 export type CmdP<T> = {
 	method: string;
 	params?: Record<string, any>;
@@ -41,7 +43,7 @@ export type EngineStatus = {
 	IsEmulator: boolean;
 } & HasStatusCode;
 
-export type ResponseHandler<T> = (error: JsonRpcError | undefined, response?: T) => void;
+export type ResponseHandler<T> = (error: QrcError | undefined, response?: T) => void;
 
 export type ControlStatus = {
 	Name: string;

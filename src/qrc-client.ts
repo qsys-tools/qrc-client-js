@@ -9,15 +9,15 @@ import {
 	type JsonRpcResponse,
 	type ResponseHandler,
 	type CmdP,
-} from './types.js';
-import {autoPollGroup, destroyGroup, noOp} from './commands.js';
+} from './types.ts';
+import {autoPollGroup, destroyGroup, noOp} from './commands.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
-} from './lib/stream-transforms.js';
-import UidMap from './lib/uid-map.js';
-import QrcError from './lib/qrc-error.js';
-import SocketWrapper from './lib/socket-wrapper.js';
-import type {ObservableConstructor} from './lib/observable.js';
+} from './lib/stream-transforms.ts';
+import UidMap from './lib/uid-map.ts';
+import QrcError from './lib/qrc-error.ts';
+import SocketWrapper from './lib/socket-wrapper.ts';
+import type {ObservableConstructor} from './lib/observable.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/naming-convention
 const Observable = AnyObservable as ObservableConstructor;
@@ -95,7 +95,7 @@ export default class QrcClient extends SocketWrapper {
 
 	async send<T>(command: CmdP<T>): Promise<T> {
 		return new Promise((resolve, reject) => {
-			const id = this._map.put((error: JsonRpcError | undefined, result?: T): void => {
+			const id = this._map.put((error: QrcError | undefined, result?: T): void => {
 				if (error) {
 					reject(error);
 				} else {

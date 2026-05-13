@@ -5,3 +5,4 @@ integration-tests/design-location.json
 .idea
 .DS_Store
 .tsimp
+.prototools

@@ -1,7 +1,7 @@
 import {type Transform} from 'node:stream';
 import {objectTransform} from 'through2';
 import split from 'split2';
-import {inspect} from './utils.js';
+import {inspect} from './utils.ts';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const NULL_CHAR = '\u0000';

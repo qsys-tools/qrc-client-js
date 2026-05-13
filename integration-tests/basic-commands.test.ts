@@ -7,7 +7,7 @@ import ava, {type ExecutionContext} from 'ava'; // eslint-disable-line ava/use-t
 import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
-import QrcClient from '../src/qrc-client.js';
+import QrcClient from '../src/qrc-client.ts';
 import {
 	getStatus,
 	logon,
@@ -22,7 +22,7 @@ import {
 	clearGroup,
 	destroyGroup,
 	removeNamedControlsFromGroup,
-} from '../src/commands.js';
+} from '../src/commands.ts';
 
 const test = isCI ? ava.serial.skip : ava.serial;
 

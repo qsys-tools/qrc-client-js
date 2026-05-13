@@ -10,7 +10,7 @@
 		"url": "http://jrtechnical.com"
 	},
 	"engines": {
-		"node": ">=24"
+		"node": ">=22.6"
 	},
 	"scripts": {
 		"build": "tsc --project tsconfig.production.json",
@@ -69,7 +69,7 @@
 			"ts"
 		],
 		"nodeArguments": [
-			"--import=tsimp"
+			"--experimental-strip-types"
 		]
 	}
 }

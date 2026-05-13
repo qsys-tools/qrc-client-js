@@ -1,6 +1,6 @@
 
-export type * from './types.js';
-export * as commands from './commands.js';
-export * from './commands.js';
+export type * from './types.ts';
+export * as commands from './commands.ts';
+export * from './commands.ts';
 
-export {default} from './qrc-client.js';
+export {default} from './qrc-client.ts';
