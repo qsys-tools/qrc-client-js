@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+
 import {type JsonRpcError} from '../types.ts';
 
 export const ErrorCodes = {

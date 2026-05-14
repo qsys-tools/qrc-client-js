@@ -3,9 +3,8 @@ import {objectTransform} from 'through2';
 import split from 'split2';
 import {inspect} from './utils.ts';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const NULL_CHAR = '\u0000';
-// eslint-disable-next-line @typescript-eslint/naming-convention
+
 const DEBUG = false;
 
 // Converts a "Null Terminated JSON" byte stream into an object stream.

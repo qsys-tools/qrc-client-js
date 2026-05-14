@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {
 	type ComponentControlSetSpec, type ComponentStatus, type ControlSetSpec, type ControlStatus, type EngineStatus, type CmdP,
 } from './types.ts';

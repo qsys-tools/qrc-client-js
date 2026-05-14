@@ -4,7 +4,6 @@ import pump from 'pump';
 import AnyObservable from 'any-observable';
 import {
 	type AutoPollUpdate,
-	type JsonRpcError,
 	type JsonRpcRequest,
 	type JsonRpcResponse,
 	type ResponseHandler,
@@ -19,7 +18,7 @@ import QrcError from './lib/qrc-error.ts';
 import SocketWrapper from './lib/socket-wrapper.ts';
 import type {ObservableConstructor} from './lib/observable.ts';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/naming-convention
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;
 
 export default class QrcClient extends SocketWrapper {

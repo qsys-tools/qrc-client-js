@@ -1,4 +1,5 @@
 import xo from 'xo';
+import pkg from './package.json' with {type: 'json'};
 
 const config = xo.xoToEslintConfig([
 	{space: false},
@@ -7,6 +8,9 @@ const config = xo.xoToEslintConfig([
 			'@stylistic/indent': 'off',
 			'@stylistic/indent-binary-ops': 'off',
 		},
+	},
+	{
+		rules: pkg.xo.rules,
 	},
 ]);
 

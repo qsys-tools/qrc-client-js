@@ -36,7 +36,8 @@
 		"pump": "^3.0.4",
 		"split2": "^4.2.0",
 		"supports-color": "^10.2.2",
-		"through2": "^5.0.0"
+		"through2": "^5.0.0",
+		"type-fest": "^5.6.0"
 	},
 	"devDependencies": {
 		"@types/is-ci": "^3.0.4",
@@ -71,5 +72,11 @@
 		"nodeArguments": [
 			"--experimental-strip-types"
 		]
+	},
+	"xo": {
+		"rules": {
+			"@typescript-eslint/naming-convention": "off",
+			"@stylistic/quote-props": ["error", "consistent-as-needed"]
+		}
 	}
 }
