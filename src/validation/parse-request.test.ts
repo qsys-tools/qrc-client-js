@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import test from 'ava';
 import {ZodError} from 'zod';
-import {createCommand} from './zod-requests.ts';
+import {createCommand} from './parse-request.ts';
 
 test('should create commands that do not require params', t => {
 	t.deepEqual(createCommand('NoOp'), {

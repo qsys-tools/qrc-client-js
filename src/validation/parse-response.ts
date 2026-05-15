@@ -1,6 +1,6 @@
 import type z from 'zod';
 import {captureStackTrace} from '../lib/utils.ts';
-import type {CommandMethod} from './zod-requests.ts';
+import type {CommandMethod} from './parse-request.ts';
 import {responseValidators} from './response-validators.ts';
 
 export type InferResponseResult<M extends CommandMethod>

@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import type {CommandMethod} from './zod-requests.ts';
+import type {CommandMethod} from './parse-request.ts';
 
 const engineStatusMessageShape = {
 	State: z.enum(['Idle', 'Active', 'Standby']),
