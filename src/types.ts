@@ -1,10 +1,5 @@
 import type QrcError from './lib/qrc-error.ts';
 
-export type CmdP<T> = {
-	method: string;
-	params?: Record<string, any>;
-};
-
 export type StatusCode = {
 	Code: number;
 	String: string;
@@ -58,11 +53,6 @@ export type ControlSetSpec = {
 } | {
 	Position: number;
 	Ramp?: number;
-};
-
-export type ComponentStatus = {
-	Name: string;
-	Controls: ControlStatus[];
 };
 
 export type ComponentControlSetSpec = {

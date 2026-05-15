@@ -75,6 +75,13 @@ const responseValidators = {
 			PrettyName: z.string(),
 		})),
 	})),
+	'ChangeGroup.AddControl': z.literal(true),
+	'ChangeGroup.Remove': z.literal(true),
+	'ChangeGroup.Invalidate': z.literal(true),
+	'ChangeGroup.Clear': z.literal(true),
+	'ChangeGroup.Destroy': z.literal(true),
+	'ChangeGroup.AddComponentControl': z.literal(true),
+	'ChangeGroup.AutoPoll': z.literal(true),
 	'ChangeGroup.Poll': z.object({
 		Id: z.string(),
 		Changes: z.array(controlStatus),

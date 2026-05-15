@@ -1,5 +1,5 @@
-import {
-	type ComponentControlSetSpec, type ComponentStatus, type ControlSetSpec, type ControlStatus, type EngineStatus, type CmdP,
+import type {
+	ComponentControlSetSpec, ControlSetSpec,
 } from './types.ts';
 import type {
 	CommandMethod, InferCommandParams, MethodWithoutParams, MethodWithParams,
@@ -130,6 +130,6 @@ export const autoPollGroup = (groupId: string, rate: number) => ({
 	},
 } satisfies PartialQrcCommand<'ChangeGroup.AutoPoll'>);
 
-export const noOp = (): CmdP<true> => ({
+export const noOp = () => ({
 	method: 'NoOp',
 } satisfies PartialQrcCommand<'NoOp'>);

@@ -30,6 +30,15 @@ import {parseResponseResult, strictlyParseResponseResult, type InferResponseResu
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;
 
+type SendArgs<M extends CommandMethod>
+	= [PartialQrcCommand<M>]
+		| (M extends MethodWithoutParams
+			? [M]
+			: M extends MethodWithParams
+				? [M, InferCommandParams<M>]
+				: never
+	);
+
 export default class QrcClient extends SocketWrapper {
 	readonly readStream: Readable;
 
@@ -101,26 +110,14 @@ export default class QrcClient extends SocketWrapper {
 		this._disconnectForwardedEvents(this.socket);
 	};
 
-	async send<M extends CommandMethod>(command: PartialQrcCommand<M>): Promise<InferResponseResult<M>> {
-		return new Promise((resolve, reject) => {
-			const id = this._map.put((error: QrcError | undefined, result?: InferResponseResult<M>): void => {
-				if (error) {
-					reject(error);
-				} else {
-					// @ts-expect-error types are hard
-					resolve(parseResponseResult(command.method, result));
-				}
-			});
-
-			// @ts-expect-error types are hard
-			this.writeStream.write({...createCommand(command.method, command.params), id});
-		});
-	}
-
 	// eslint-disable-next-line @typescript-eslint/unified-signatures
-	async sendValidated<M extends MethodWithParams>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
-	async sendValidated<M extends MethodWithoutParams>(method: M): Promise<InferResponseResult<M>>;
-	async sendValidated<M extends CommandMethod>(method: M, parameters?: InferCommandParams<M>): Promise<InferResponseResult<M>> {
+	async send<M extends MethodWithParams>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
+	async send<M extends MethodWithoutParams>(method: M): Promise<InferResponseResult<M>>;
+	async send<M extends CommandMethod>(command: PartialQrcCommand<M>): Promise<InferResponseResult<M>>;
+	async send<M extends CommandMethod>(...args: SendArgs<M>) {
+		const method = typeof args[0] === 'string' ? args[0] : args[0].method;
+		// @ts-expect-error types are hard
+		const parameters: InferCommandParams<M> = typeof args[0] === 'string' ? args[1] : ('params' in args[0] ? args[0].params : undefined);
 		return new Promise((resolve, reject) => {
 			const id = this._map.put((error: QrcError | undefined, result?: InferResponseResult<M>): void => {
 				if (error) {
