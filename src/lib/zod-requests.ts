@@ -43,7 +43,7 @@ const mixerMuteIO = withName({
 
 const noParamMethods = ['NoOp', 'StatusGet', 'Component.GetComponents'] as const;
 
-const allValidators = {
+const requestValidators = {
 	'Logon': z.object({
 		User: z.string(),
 		Password: z.string(),
@@ -116,30 +116,30 @@ const allValidators = {
 } satisfies Record<string, z.ZodObject<Record<string, z.ZodType>> | z.ZodArray<z.ZodString>>;
 
 type MethodWithoutParams = typeof noParamMethods[number];
-type MethodWithParams = keyof typeof allValidators;
-type CommandMethods = MethodWithoutParams | MethodWithParams;
+type MethodWithParams = keyof typeof requestValidators;
+export type CommandMethod = MethodWithoutParams | MethodWithParams;
 
 export type ParamTypeMap = {
-	[Key in CommandMethods]:
+	[Key in CommandMethod]:
 	Key extends MethodWithoutParams
 		? EmptyObject
 		: Key extends MethodWithParams
-			? z.output<typeof allValidators[Key]>
+			? z.output<typeof requestValidators[Key]>
 			: never;
 };
 
-export type InferCommandParams<M extends CommandMethods> = ParamTypeMap[M];
+export type InferCommandParams<M extends CommandMethod> = ParamTypeMap[M];
 
-export type QRCCommand<M extends CommandMethods> = {
+export type QRCCommand<M extends CommandMethod> = {
 	jsonrpc: '2.0';
 	method: M;
 	params: ParamTypeMap[M];
 };
 
-export const methodHasParams = (method: CommandMethods): method is MethodWithParams =>
-	method in allValidators;
+export const methodHasParams = (method: CommandMethod): method is MethodWithParams =>
+	method in requestValidators;
 
-export const methodHasNoParams = (m: CommandMethods): m is MethodWithoutParams =>
+export const methodHasNoParams = (m: CommandMethod): m is MethodWithoutParams =>
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/no-unsafe-argument
 	noParamMethods.includes(m as any);
 
@@ -153,12 +153,12 @@ const captureStackTrace: (targetObject: object, constructorOpt?: Function) => vo
 
 export function safeParse<M extends MethodWithParams>(method: M, params: unknown): ZodSafeParseResult<InferCommandParams<M>> {
 	// @ts-expect-error fooo
-	return allValidators[method].safeParse(params);
+	return requestValidators[method].safeParse(params);
 }
 
 export function parse<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O): InferCommandParams<M>;
 export function parse<M extends MethodWithoutParams>(method: M, params?: unknown): InferCommandParams<M>;
-export function parse<M extends CommandMethods, O extends InferCommandParams<M>>(method: M, params?: O): InferCommandParams<M> {
+export function parse<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): InferCommandParams<M> {
 	if (methodHasParams(method)) {
 		const result = safeParse(method, params);
 		if (result.success) {
@@ -178,7 +178,7 @@ export function parse<M extends CommandMethods, O extends InferCommandParams<M>>
 	throw new TypeError(`Unknown command ${method}`);
 }
 
-function wrap<M extends CommandMethods>(method: M, params: InferCommandParams<M>): QRCCommand<M> {
+function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>): QRCCommand<M> {
 	return {
 		jsonrpc: '2.0',
 		method,
@@ -188,7 +188,7 @@ function wrap<M extends CommandMethods>(method: M, params: InferCommandParams<M>
 
 export function createCommand<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O): QRCCommand<M>;
 export function createCommand<M extends MethodWithoutParams>(method: M, params?: unknown): QRCCommand<M>;
-export function createCommand<M extends CommandMethods, O extends InferCommandParams<M>>(method: M, params?: O): QRCCommand<M> {
+export function createCommand<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): QRCCommand<M> {
 	// @ts-expect-error Don't understand why the typeguard isn't sufficient here
 	return wrap(method, parse(method, params));
 }

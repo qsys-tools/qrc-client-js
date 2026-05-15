@@ -6,3 +6,4 @@ integration-tests/design-location.json
 .DS_Store
 .tsimp
 .prototools
+integration-tests/data

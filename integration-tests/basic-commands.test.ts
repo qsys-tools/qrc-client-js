@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs';
 import path from 'node:path';
-import ava, {type ExecutionContext} from 'ava'; // eslint-disable-line ava/use-test
+import ava, {type ExecutionContext, type SerialFn} from 'ava'; // eslint-disable-line ava/use-test
 import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
@@ -24,7 +24,8 @@ import {
 	removeNamedControlsFromGroup,
 } from '../src/commands.ts';
 
-const test = isCI ? ava.serial.skip : ava.serial;
+// @ts-expect-error Just making `.only` work for local testing
+const test: SerialFn = isCI ? ava.serial.skip : ava.serial;
 
 let connectionJSON;
 
@@ -50,6 +51,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	await connectEvent;
 	await client.send(setNamedControl('AllOff', true));
 	await run(t, client);
+	await delay(200);
 	client.end();
 	await closeEvent;
 };

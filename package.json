@@ -51,6 +51,7 @@
 		"eslint": "^10.3.0",
 		"eslint-config-xo": "^0.51.0",
 		"is-ci": "^4.1.0",
+		"make-dir": "^5.1.0",
 		"p-event": "^7.1.0",
 		"typescript": "^6.0.3",
 		"xo": "^2.0.2",
@@ -76,7 +77,10 @@
 	"xo": {
 		"rules": {
 			"@typescript-eslint/naming-convention": "off",
-			"@stylistic/quote-props": ["error", "consistent-as-needed"]
+			"@stylistic/quote-props": [
+				"error",
+				"consistent-as-needed"
+			]
 		}
 	}
 }
