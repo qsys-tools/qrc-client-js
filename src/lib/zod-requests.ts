@@ -2,6 +2,7 @@
 import z, {type ZodSafeParseResult} from 'zod';
 import type {$ZodLooseShape} from 'zod/v4/core';
 import type {EmptyObject} from 'type-fest';
+import {captureStackTrace} from './utils.ts';
 
 const setControlValueSchema = z.object({
 	Name: z.string(),
@@ -143,39 +144,34 @@ export const methodHasNoParams = (m: CommandMethod): m is MethodWithoutParams =>
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/no-unsafe-argument
 	noParamMethods.includes(m as any);
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-function-type,@typescript-eslint/no-restricted-types,@typescript-eslint/no-unsafe-type-assertion
-const captureStackTrace: (targetObject: object, constructorOpt?: Function) => void = (
-	'captureStackTrace' in Error
-		? Error.captureStackTrace
-		: (..._args: any[]) => {
-			/* Empty */
-		}) as any;
-
-export function safeParse<M extends MethodWithParams>(method: M, params: unknown): ZodSafeParseResult<InferCommandParams<M>> {
-	// @ts-expect-error fooo
-	return requestValidators[method].safeParse(params);
-}
-
-export function parse<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O): InferCommandParams<M>;
-export function parse<M extends MethodWithoutParams>(method: M, params?: unknown): InferCommandParams<M>;
-export function parse<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): InferCommandParams<M> {
+export function safeParseCommandParameters<M extends CommandMethod>(method: M, params: unknown): ZodSafeParseResult<InferCommandParams<M>> {
 	if (methodHasParams(method)) {
-		const result = safeParse(method, params);
-		if (result.success) {
-			return result.data;
-		}
-
-		const {error} = result;
-		captureStackTrace(error);
-		throw error;
+		// @ts-expect-error types are hard
+		return requestValidators[method].safeParse(params);
 	}
 
 	if (methodHasNoParams(method)) {
-		// @ts-expect-error Don't understand why the typeguard isn't sufficient here
-		return {};
+		return {
+			success: true,
+			// @ts-expect-error types are hard
+			data: {},
+		};
 	}
 
 	throw new TypeError(`Unknown command ${method}`);
+}
+
+export function parseCommandParameters<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O): InferCommandParams<M>;
+export function parseCommandParameters<M extends MethodWithoutParams>(method: M, params?: unknown): InferCommandParams<M>;
+export function parseCommandParameters<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): InferCommandParams<M> {
+	const validationResult = safeParseCommandParameters(method, params);
+	if (validationResult.success) {
+		return validationResult.data;
+	}
+
+	const {error} = validationResult;
+	captureStackTrace(error);
+	throw error;
 }
 
 function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>): QRCCommand<M> {
@@ -190,5 +186,5 @@ export function createCommand<M extends MethodWithParams, O extends InferCommand
 export function createCommand<M extends MethodWithoutParams>(method: M, params?: unknown): QRCCommand<M>;
 export function createCommand<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): QRCCommand<M> {
 	// @ts-expect-error Don't understand why the typeguard isn't sufficient here
-	return wrap(method, parse(method, params));
+	return wrap(method, parseCommandParameters(method, params));
 }

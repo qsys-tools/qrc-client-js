@@ -1,5 +1,6 @@
 import * as z from 'zod';
-import type {CommandMethod} from './zod-requests.ts';
+import type {CommandMethod, InferCommandParams} from './zod-requests.ts';
+import {captureStackTrace} from './utils.ts';
 
 const engineStatusMessageShape = {
 	State: z.enum(['Idle', 'Active', 'Standby']),
@@ -86,12 +87,26 @@ export type InferResponseResult<M extends CommandMethod>
 export const hasValidator = (m: CommandMethod): m is keyof typeof responseValidators =>
 	m in responseValidators;
 
-export const validateResponseResult = <M extends CommandMethod>(method: M, result: unknown): InferResponseResult<M> => {
+export function safeParseResponseResult<M extends CommandMethod>(method: M, result: unknown): z.ZodSafeParseResult<InferResponseResult<M>> {
 	if (hasValidator(method)) {
-		// @ts-expect-error Force it
-		return responseValidators[method].parse(result);
+		// @ts-expect-error fooo
+		return responseValidators[method].safeParse(result);
 	}
 
-	// @ts-expect-error Force it
-	return result;
+	return {
+		success: true,
+		// @ts-expect-error types are hard
+		data: result,
+	};
+}
+
+export const parseResponseResult = <M extends CommandMethod>(method: M, result: unknown): InferResponseResult<M> => {
+	const validationResult = safeParseResponseResult(method, result);
+	if (validationResult.success) {
+		return validationResult.data;
+	}
+
+	const {error} = validationResult;
+	captureStackTrace(error);
+	throw error;
 };

@@ -8,3 +8,11 @@ export const inspect = (object: any): string => insp(object, {colors, depth: Inf
 export const log = (...args: any[]): void => {
 	console.log(...args.map(value => typeof value === 'string' ? value : inspect(value)));
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-function-type,@typescript-eslint/no-restricted-types,@typescript-eslint/no-unsafe-type-assertion
+export const captureStackTrace: (targetObject: object, constructorOpt?: Function) => void = (
+	'captureStackTrace' in Error
+		? Error.captureStackTrace
+		: (..._args: any[]) => {
+			/* Empty */
+		}) as any;
