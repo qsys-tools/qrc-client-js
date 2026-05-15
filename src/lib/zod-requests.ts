@@ -81,7 +81,9 @@ const requestValidators = {
 	'ChangeGroup.Destroy': withId({}),
 	'ChangeGroup.Invalidate': withId({}),
 	'ChangeGroup.Clear': withId({}),
-	'ChangeGroup.AutoPoll': withId({}),
+	'ChangeGroup.AutoPoll': withId({
+		Rate: z.number(),
+	}),
 	'Mixer.SetCrossPointGain': mixerGainIO,
 	'Mixer.SetCrossPointDelay': mixerGainIO,
 	'Mixer.SetCrossPointMute': mixerMuteIO,

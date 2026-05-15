@@ -53,8 +53,10 @@ export type ControlStatus = {
 };
 
 export type ControlSetSpec = {
-	Value?: number | string | boolean;
-	Position?: number;
+	Value: number | string | boolean;
+	Ramp?: number;
+} | {
+	Position: number;
 	Ramp?: number;
 };
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -8,12 +7,8 @@ import isCI from 'is-ci';
 import {pEvent} from 'p-event';
 import QrcClient from '../src/qrc-client.ts';
 import {
-	getStatus,
-	logon,
-	getNamedControls,
 	setNamedControl,
 	getComponentControls,
-	setComponentControls,
 	addNamedControlToGroup,
 	addComponentControlsToGroup,
 	pollGroup,
@@ -70,7 +65,8 @@ test('getStatus', withEmulator, async (t: ExecutionContext, client: QrcClient) =
 });
 
 test('logon', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.sendValidated('Logon', {User: 'james', Password: '123456'}));
+	const result = await client.sendValidated('Logon', {User: 'james', Password: '123456'});
+	t.true(result);
 });
 
 test('getNamedControls', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
@@ -218,7 +214,7 @@ test('clearGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) 
 test('destroyGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
 	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainBypass'])));
 	t.true(await client.send(destroyGroup('my group')));
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
 	await t.throwsAsync(async () => client.send(pollGroup('my group')), {message: /group.*does not exist/v}, 'foo');
 });
 

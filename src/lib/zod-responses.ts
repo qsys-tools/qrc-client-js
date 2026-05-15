@@ -77,7 +77,7 @@ const responseValidators = {
 	})),
 	'ChangeGroup.Poll': z.object({
 		Id: z.string(),
-		Changes: z.union([controlStatus, componentControlReport]),
+		Changes: z.array(controlStatus),
 	}),
 } satisfies Partial<Record<CommandMethod, z.ZodType>>;
 

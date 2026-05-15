@@ -7,9 +7,10 @@ import {
 	type JsonRpcRequest,
 	type JsonRpcResponse,
 	type ResponseHandler,
-	type CmdP,
 } from './types.ts';
-import {autoPollGroup, destroyGroup, noOp} from './commands.ts';
+import {
+	autoPollGroup, destroyGroup, noOp, type PartialQrcCommand,
+} from './commands.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
 } from './lib/stream-transforms.ts';
@@ -100,17 +101,19 @@ export default class QrcClient extends SocketWrapper {
 		this._disconnectForwardedEvents(this.socket);
 	};
 
-	async send<T>(command: CmdP<T>): Promise<T> {
+	async send<M extends CommandMethod>(command: PartialQrcCommand<M>): Promise<InferResponseResult<M>> {
 		return new Promise((resolve, reject) => {
-			const id = this._map.put((error: QrcError | undefined, result?: T): void => {
+			const id = this._map.put((error: QrcError | undefined, result?: InferResponseResult<M>): void => {
 				if (error) {
 					reject(error);
 				} else {
-					resolve(result!);
+					// @ts-expect-error types are hard
+					resolve(parseResponseResult(command.method, result));
 				}
 			});
 
-			this.writeStream.write({...command, id});
+			// @ts-expect-error types are hard
+			this.writeStream.write({...createCommand(command.method, command.params), id});
 		});
 	}
 
