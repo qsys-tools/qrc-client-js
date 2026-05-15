@@ -5,19 +5,6 @@ import {pEvent} from 'p-event';
 import {makeDirectorySync} from 'make-dir';
 import QrcClient from '../src/qrc-client.ts';
 import {
-	getStatus,
-	logon,
-	getNamedControls,
-	setNamedControl,
-	getComponentControls,
-	setComponentControls,
-	addNamedControlToGroup,
-	addComponentControlsToGroup,
-	pollGroup,
-	invalidateGroup,
-	clearGroup,
-	destroyGroup,
-	removeNamedControlsFromGroup,
 	getComponents,
 } from '../src/commands.ts';
 
@@ -37,7 +24,6 @@ client.on('error', error => {
 });
 
 const connectEvent = pEvent(client, 'connect');
-const closeEvent = pEvent(client, 'close');
 
 client.connect(connectionInfo);
 await connectEvent;

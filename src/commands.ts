@@ -30,8 +30,6 @@ export const getNamedControls = (...controlNames: string[]) => ({
 } satisfies PartialQrcCommand<'Control.Get'>);
 
 export const setNamedControl = (controlName: string, spec: ControlSetSpec | boolean | string | number) => {
-	const t = typeof spec;
-
 	if (typeof spec === 'number' || typeof spec === 'boolean' || typeof spec === 'string') {
 		spec = {Value: spec};
 	}

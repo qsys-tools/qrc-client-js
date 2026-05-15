@@ -25,7 +25,7 @@ import {
 	type MethodWithParams,
 	type InferCommandParams,
 } from './validation/parse-request.ts';
-import {parseResponseResult, strictlyParseResponseResult, type InferResponseResult} from './validation/parse-response.ts';
+import {parseResponseResult, type InferResponseResult} from './validation/parse-response.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;

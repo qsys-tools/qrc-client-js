@@ -10,7 +10,9 @@
 		"allowImportingTsExtensions": true,
 		"strict": true,
 		"declaration": false,
-		"outDir": "./dist"
+		"outDir": "./dist",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true
 	},
 	"include": [
 		"integration-tests/**/*.ts",

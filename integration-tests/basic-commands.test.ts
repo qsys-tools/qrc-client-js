@@ -156,7 +156,7 @@ test('setComponentControls with Results', withEmulator, async (t: ExecutionConte
 		return t.fail('should return an object');
 	}
 
-	const [mute, gain] = result;
+	const [, gain] = result;
 
 	t.is(gain.Value, 20);
 });
