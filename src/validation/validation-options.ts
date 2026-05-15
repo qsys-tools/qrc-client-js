@@ -33,13 +33,14 @@ const defaultOptions = {
 	},
 } as const;
 
-export const getParseLevel = (options: ParseOptions, direction: ParseDirection) =>
-	typeof options.parseLevel === 'object' ? options.parseLevel[direction] : (options.parseLevel ?? defaultOptions.parseLevel[direction]);
+export const getParseLevel = (options: ParseOptions | undefined, direction: ParseDirection) =>
+	(options && (typeof options.parseLevel === 'object' ? options.parseLevel[direction] : options.parseLevel)) ?? defaultOptions.parseLevel[direction];
 
-export const getFailureOption = (options: ParseOptions, direction: ParseDirection) =>
-	typeof options.onParseFailure === 'object' ? options.onParseFailure[direction] : (options.onParseFailure ?? defaultOptions.onParseFailure[direction]);
+export const getFailureOption = (options: ParseOptions | undefined, direction: ParseDirection) =>
+	(options && (typeof options.onParseFailure === 'object' ? options.onParseFailure[direction] : options.onParseFailure)) ?? defaultOptions.onParseFailure[direction];
 
-export const handleError = (failureOption: ParseFailureOption, error: ZodError, method: CommandMethod, parametersOrResult: unknown) => {
+export const handleError = (options: ParseOptions | undefined, direction: ParseDirection, error: ZodError, method: CommandMethod, parametersOrResult: unknown) => {
+	const failureOption = getFailureOption(options, direction);
 	captureStackTrace(error);
 	switch (failureOption) {
 		case 'throw': {

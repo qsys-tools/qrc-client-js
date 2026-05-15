@@ -1,8 +1,8 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import type z from 'zod';
 import type {EmptyObject} from 'type-fest';
-import {captureStackTrace} from '../lib/utils.ts';
-import {noParameterMethods, requestValidators} from './request-validators.ts';
+import {noParameterMethods, requestValidators, strictRequestValidators} from './request-validators.ts';
+import {getParseLevel, handleError, type ParseOptions} from './validation-options.ts';
 
 export type MethodWithoutParams = typeof noParameterMethods[number];
 export type MethodWithParams = keyof typeof requestValidators;
@@ -28,10 +28,11 @@ export const methodHasNoParams = (m: CommandMethod): m is MethodWithoutParams =>
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/no-unsafe-argument
 	noParameterMethods.includes(m as any);
 
-export function safeParseCommandParameters<M extends CommandMethod>(method: M, params: unknown): z.ZodSafeParseResult<InferCommandParams<M>> {
+export function safeParseCommandParameters<M extends CommandMethod>(method: M, params: unknown, parseOptions?: ParseOptions): z.ZodSafeParseResult<InferCommandParams<M>> {
+	const parseLevel = getParseLevel(parseOptions, 'commands');
 	if (methodHasParams(method)) {
 		// @ts-expect-error types are hard
-		return requestValidators[method].safeParse(params);
+		return (parseLevel === 'strict' ? strictRequestValidators : requestValidators)[method].safeParse(params);
 	}
 
 	if (methodHasNoParams(method)) {
@@ -45,17 +46,16 @@ export function safeParseCommandParameters<M extends CommandMethod>(method: M, p
 	throw new TypeError(`Unknown command ${method}`);
 }
 
-export function parseCommandParameters<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O): InferCommandParams<M>;
-export function parseCommandParameters<M extends MethodWithoutParams>(method: M, params?: unknown): InferCommandParams<M>;
-export function parseCommandParameters<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): InferCommandParams<M> {
-	const validationResult = safeParseCommandParameters(method, params);
+export function parseCommandParameters<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O, parseOptions?: ParseOptions): InferCommandParams<M>;
+export function parseCommandParameters<M extends MethodWithoutParams>(method: M, params?: unknown, parseOptions?: ParseOptions): InferCommandParams<M>;
+export function parseCommandParameters<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O, parseOptions?: ParseOptions): InferCommandParams<M> {
+	const validationResult = safeParseCommandParameters(method, params, parseOptions);
 	if (validationResult.success) {
 		return validationResult.data;
 	}
 
-	const {error} = validationResult;
-	captureStackTrace(error);
-	throw error;
+	// @ts-expect-error types are hard
+	return handleError(parseOptions, 'commands', validationResult.error, method, params);
 }
 
 function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>): QRCCommand<M> {
@@ -66,9 +66,9 @@ function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>)
 	};
 }
 
-export function createCommand<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O): QRCCommand<M>;
-export function createCommand<M extends MethodWithoutParams>(method: M, params?: unknown): QRCCommand<M>;
-export function createCommand<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O): QRCCommand<M> {
+export function createCommand<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O, parseOptions?: ParseOptions): QRCCommand<M>;
+export function createCommand<M extends MethodWithoutParams>(method: M, params?: unknown, parseOptions?: ParseOptions): QRCCommand<M>;
+export function createCommand<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O, parseOptions?: ParseOptions): QRCCommand<M> {
 	// @ts-expect-error Don't understand why the typeguard isn't sufficient here
-	return wrap(method, parseCommandParameters(method, params));
+	return wrap(method, parseCommandParameters(method, params, parseOptions));
 }
