@@ -24,8 +24,8 @@ import {
 	type MethodWithoutParams,
 	type MethodWithParams,
 	type InferCommandParams,
-} from './lib/zod-requests.ts';
-import {parseResponseResult, strictlyParseResponseResult, type InferResponseResult} from './lib/zod-responses.ts';
+} from './validation/zod-requests.ts';
+import {parseResponseResult, strictlyParseResponseResult, type InferResponseResult} from './validation/zod-responses.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;

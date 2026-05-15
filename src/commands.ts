@@ -3,7 +3,7 @@ import type {
 } from './types.ts';
 import type {
 	CommandMethod, InferCommandParams, MethodWithoutParams, MethodWithParams,
-} from './lib/zod-requests.ts';
+} from './validation/zod-requests.ts';
 
 export type PartialQrcCommand<M extends CommandMethod>
 	= M extends MethodWithoutParams
