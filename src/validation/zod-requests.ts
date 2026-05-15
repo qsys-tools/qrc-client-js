@@ -8,21 +8,17 @@ export type MethodWithoutParams = typeof noParameterMethods[number];
 export type MethodWithParams = keyof typeof requestValidators;
 export type CommandMethod = MethodWithoutParams | MethodWithParams;
 
-export type ParamTypeMap = {
-	[Key in CommandMethod]:
-	Key extends MethodWithoutParams
+export type InferCommandParams<M extends CommandMethod>
+	= M extends MethodWithoutParams
 		? EmptyObject
-		: Key extends MethodWithParams
-			? z.output<typeof requestValidators[Key]>
+		: M extends MethodWithParams
+			? z.output<typeof requestValidators[M]>
 			: never;
-};
-
-export type InferCommandParams<M extends CommandMethod> = ParamTypeMap[M];
 
 export type QRCCommand<M extends CommandMethod> = {
 	jsonrpc: '2.0';
 	method: M;
-	params: ParamTypeMap[M];
+	params: InferCommandParams<M>;
 };
 
 export const methodHasParams = (method: CommandMethod): method is MethodWithParams =>
