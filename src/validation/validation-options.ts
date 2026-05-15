@@ -41,18 +41,20 @@ export const getFailureOption = (options: ParseOptions | undefined, direction: P
 
 export const handleError = (options: ParseOptions | undefined, direction: ParseDirection, error: ZodError, method: CommandMethod, parametersOrResult: unknown) => {
 	const failureOption = getFailureOption(options, direction);
-	captureStackTrace(error);
 	switch (failureOption) {
 		case 'throw': {
+			captureStackTrace(error);
 			throw error;
 		}
 
 		case 'logAndThrow': {
+			captureStackTrace(error);
 			console.warn(error);
 			throw error;
 		}
 
 		case 'log': {
+			captureStackTrace(error);
 			console.warn(error);
 			break;
 		}
@@ -62,6 +64,7 @@ export const handleError = (options: ParseOptions | undefined, direction: ParseD
 		}
 
 		default: {
+			captureStackTrace(error);
 			return failureOption(error, method, parametersOrResult);
 		}
 		// No default

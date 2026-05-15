@@ -31,9 +31,9 @@ try {
 
 const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 
-const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => any): Promise<any> => {
+const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
-	const client = new QrcClient();
+	const client = new QrcClient({parseLevel: 'strict', onParseFailure: 'throw'});
 	client.on('error', error => {
 		console.error(`Error in ${title}`);
 		console.error(error);
@@ -46,10 +46,13 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	client.connect(connectionInfo);
 	await connectEvent;
 	await client.send(setNamedControl('AllOff', true));
+
+	t.teardown(async () => {
+		await delay(200);
+		client.end();
+		await closeEvent;
+	});
 	await run(t, client);
-	await delay(200);
-	client.end();
-	await closeEvent;
 };
 
 test('getStatus', withEmulator, async (t: ExecutionContext, client: QrcClient) => {

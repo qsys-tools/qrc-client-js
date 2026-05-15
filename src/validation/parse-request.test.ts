@@ -60,7 +60,7 @@ test('should throw an error if params are incorrect', t => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const error: ZodError = t.throws(() => createCommand('ChangeGroup.AddControl', {
 		Id: 'My Control',
-	}), {
+	}, {onParseFailure: 'throw'}), {
 		instanceOf: ZodError,
 	});
 	t.is(error.issues.length, 1);

@@ -20,12 +20,14 @@ import SocketWrapper from './lib/socket-wrapper.ts';
 import type {ObservableConstructor} from './lib/observable.ts';
 import {
 	createCommand,
+	parseResponseResult,
+	type ParseOptions,
 	type CommandMethod,
 	type MethodWithoutParams,
 	type MethodWithParams,
 	type InferCommandParams,
-} from './validation/parse-request.ts';
-import {parseResponseResult, type InferResponseResult} from './validation/parse-response.ts';
+	type InferResponseResult,
+} from './validation/index.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;
@@ -39,7 +41,11 @@ type SendArgs<M extends CommandMethod>
 				: never
 	);
 
+type QrcClientOptions = ParseOptions;
+
 export default class QrcClient extends SocketWrapper {
+	readonly options: QrcClientOptions;
+
 	readonly readStream: Readable;
 
 	readonly writeStream: Writable;
@@ -48,8 +54,9 @@ export default class QrcClient extends SocketWrapper {
 
 	private readonly _map = new UidMap<ResponseHandler<any>>();
 
-	constructor() {
+	constructor(options: QrcClientOptions = {}) {
 		super();
+		this.options = options;
 
 		for (const eventName of ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']) {
 			this._forwardedEvents[eventName] = (...args: unknown[]) => {
@@ -123,12 +130,22 @@ export default class QrcClient extends SocketWrapper {
 				if (error) {
 					reject(error);
 				} else {
-					resolve(parseResponseResult(method, result));
+					try {
+						resolve(parseResponseResult(method, result, this.options));
+					} catch (error) {
+						// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+						reject(error);
+					}
 				}
 			});
 
-			// @ts-expect-error types are hard
-			this.writeStream.write({...createCommand(method, parameters), id});
+			try {
+				// @ts-expect-error types are hard
+				this.writeStream.write({...createCommand(method, parameters, this.options), id});
+			} catch (error) {
+				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+				reject(error);
+			}
 		});
 	}
 
