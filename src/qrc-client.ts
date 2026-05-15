@@ -17,6 +17,14 @@ import UidMap from './lib/uid-map.ts';
 import QrcError from './lib/qrc-error.ts';
 import SocketWrapper from './lib/socket-wrapper.ts';
 import type {ObservableConstructor} from './lib/observable.ts';
+import {
+	createCommand,
+	type CommandMethod,
+	type MethodWithoutParams,
+	type MethodWithParams,
+	type InferCommandParams,
+} from './lib/zod-requests.ts';
+import {parseResponseResult, strictlyParseResponseResult, type InferResponseResult} from './lib/zod-responses.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;
@@ -103,6 +111,24 @@ export default class QrcClient extends SocketWrapper {
 			});
 
 			this.writeStream.write({...command, id});
+		});
+	}
+
+	// eslint-disable-next-line @typescript-eslint/unified-signatures
+	async sendValidated<M extends MethodWithParams>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
+	async sendValidated<M extends MethodWithoutParams>(method: M): Promise<InferResponseResult<M>>;
+	async sendValidated<M extends CommandMethod>(method: M, parameters?: InferCommandParams<M>): Promise<InferResponseResult<M>> {
+		return new Promise((resolve, reject) => {
+			const id = this._map.put((error: QrcError | undefined, result?: InferResponseResult<M>): void => {
+				if (error) {
+					reject(error);
+				} else {
+					resolve(parseResponseResult(method, result));
+				}
+			});
+
+			// @ts-expect-error types are hard
+			this.writeStream.write({...createCommand(method, parameters), id});
 		});
 	}
 

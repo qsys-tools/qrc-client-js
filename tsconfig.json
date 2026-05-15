@@ -13,8 +13,8 @@
 		"outDir": "./dist"
 	},
 	"include": [
-		"integration-tests",
-		"src",
-		"@types"
+		"integration-tests/**/*.ts",
+		"src/**/*.ts",
+		"@types/*.ts"
 	]
 }

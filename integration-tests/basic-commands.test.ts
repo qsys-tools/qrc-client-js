@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs';
@@ -57,7 +56,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 };
 
 test('getStatus', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	const status = await client.send(getStatus());
+	const status = await client.sendValidated('StatusGet');
 
 	t.is(status.DesignName, 'Basic-Commands-Test');
 	t.is(status.IsRedundant, false);
@@ -71,12 +70,11 @@ test('getStatus', withEmulator, async (t: ExecutionContext, client: QrcClient) =
 });
 
 test('logon', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(logon('james', 'password')));
+	t.true(await client.sendValidated('Logon', {User: 'james', Password: '123456'}));
 });
 
 test('getNamedControls', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	const [gain, mute] = await client.send(getNamedControls('GainGain', 'GainMute'));
-
+	const [gain, mute] = await client.sendValidated('Control.Get', ['GainGain', 'GainMute']);
 	t.is(gain.String, '-100dB');
 	t.is(gain.Value, -100);
 	t.is(gain.Position, 0);
@@ -89,7 +87,10 @@ test('getNamedControls', withEmulator, async (t: ExecutionContext, client: QrcCl
 });
 
 test('setNamedControl', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	let gain = await client.send(setNamedControl('GainGain', {Value: 20}));
+	let gain = await client.sendValidated('Control.Set', {
+		Name: 'GainGain',
+		Value: 20,
+	});
 
 	t.is(gain.String, '20.0dB');
 	t.is(gain.Value, 20);
@@ -107,7 +108,13 @@ test('setNamedControl', withEmulator, async (t: ExecutionContext, client: QrcCli
 });
 
 test('getComponentControls', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	const component = await client.send(getComponentControls('MyGain', ['mute', 'gain']));
+	const component = await client.sendValidated('Component.Get', {
+		Name: 'MyGain',
+		Controls: [
+			{Name: 'mute'},
+			{Name: 'gain'},
+		],
+	});
 
 	t.is(component.Name, 'MyGain');
 
@@ -125,12 +132,33 @@ test('getComponentControls', withEmulator, async (t: ExecutionContext, client: Q
 });
 
 test('setComponentControls', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(setComponentControls('MyGain', [
-		{Name: 'mute', Value: 1},
-		{Name: 'gain', Position: 1},
-	])));
+	t.true(await client.sendValidated('Component.Set', {
+		Name: 'MyGain',
+		Controls: [
+			{Name: 'mute', Value: 1},
+			{Name: 'gain', Position: 1},
+		],
+	}));
 
 	const {Controls: [gain]} = await client.send(getComponentControls('MyGain', ['gain']));
+
+	t.is(gain.Value, 20);
+});
+
+test('setComponentControls with Results', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+	const result = await client.sendValidated('Component.Set', {
+		Name: 'MyGain',
+		Controls: [
+			{Name: 'mute', Value: 1},
+			{Name: 'gain', Position: 1},
+		],
+		ResponseValues: true,
+	});
+	if (result === true) {
+		return t.fail('should return an object');
+	}
+
+	const [mute, gain] = result;
 
 	t.is(gain.Value, 20);
 });

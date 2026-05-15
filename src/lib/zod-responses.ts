@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import type {CommandMethod, InferCommandParams} from './zod-requests.ts';
+import type {CommandMethod} from './zod-requests.ts';
 import {captureStackTrace} from './utils.ts';
 
 const engineStatusMessageShape = {
@@ -43,8 +43,10 @@ const componentControlReport = z.object({
 });
 
 const responseValidators = {
+	'Logon': z.literal(true),
 	'StatusGet': z.object({
 		...engineStatusMessageShape,
+		Platform: z.string(),
 		Status: z.object({
 			Code: z.number(),
 			String: z.string(),
@@ -60,7 +62,7 @@ const responseValidators = {
 		Name: z.string(),
 		Controls: z.array(componentControlReport),
 	}),
-	'Component.Set': z.array(componentControlStatus),
+	'Component.Set': z.union([z.literal(true), z.array(componentControlStatus)]),
 	'Component.GetComponents': z.array(z.object({
 		ID: z.string(),
 		Name: z.string(),
@@ -84,13 +86,19 @@ export type InferResponseResult<M extends CommandMethod>
 		? z.output<typeof responseValidators[M]>
 		: unknown;
 
-export const hasValidator = (m: CommandMethod): m is keyof typeof responseValidators =>
+export const haseResponseValidator = (m: CommandMethod): m is keyof typeof responseValidators =>
 	m in responseValidators;
 
-export function safeParseResponseResult<M extends CommandMethod>(method: M, result: unknown): z.ZodSafeParseResult<InferResponseResult<M>> {
-	if (hasValidator(method)) {
-		// @ts-expect-error fooo
-		return responseValidators[method].safeParse(result);
+function _safeParseResponseResult<M extends CommandMethod>(strict: boolean, method: M, result: unknown): z.ZodSafeParseResult<InferResponseResult<M>> {
+	if (haseResponseValidator(method)) {
+		let validator = responseValidators[method];
+		if (strict && 'strict' in validator && typeof validator.strict === 'function') {
+			// @ts-expect-error types are hard
+			validator = validator.strict();
+		}
+
+		// @ts-expect-error types are hard
+		return validator.safeParse(result);
 	}
 
 	return {
@@ -100,8 +108,8 @@ export function safeParseResponseResult<M extends CommandMethod>(method: M, resu
 	};
 }
 
-export const parseResponseResult = <M extends CommandMethod>(method: M, result: unknown): InferResponseResult<M> => {
-	const validationResult = safeParseResponseResult(method, result);
+const _parseResponseResult = <M extends CommandMethod>(strict: boolean, method: M, result: unknown): InferResponseResult<M> => {
+	const validationResult = _safeParseResponseResult(strict, method, result);
 	if (validationResult.success) {
 		return validationResult.data;
 	}
@@ -110,3 +118,18 @@ export const parseResponseResult = <M extends CommandMethod>(method: M, result: 
 	captureStackTrace(error);
 	throw error;
 };
+
+export function safeParseResponseResult<M extends CommandMethod>(method: M, result: unknown): z.ZodSafeParseResult<InferResponseResult<M>> {
+	return _safeParseResponseResult(false, method, result);
+}
+
+export function strictlySafeParseResponseResult<M extends CommandMethod>(method: M, result: unknown): z.ZodSafeParseResult<InferResponseResult<M>> {
+	return _safeParseResponseResult(true, method, result);
+}
+
+export const parseResponseResult = <M extends CommandMethod>(method: M, result: unknown): InferResponseResult<M> =>
+	_parseResponseResult(false, method, result);
+
+export const strictlyParseResponseResult = <M extends CommandMethod>(method: M, result: unknown): InferResponseResult<M> =>
+	_parseResponseResult(true, method, result);
+

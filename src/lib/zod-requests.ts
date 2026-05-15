@@ -4,11 +4,18 @@ import type {$ZodLooseShape} from 'zod/v4/core';
 import type {EmptyObject} from 'type-fest';
 import {captureStackTrace} from './utils.ts';
 
-const setControlValueSchema = z.object({
-	Name: z.string(),
-	Value: z.union([z.string(), z.boolean(), z.number()]),
-	Ramp: z.number().optional(),
-});
+const setControlValueSchema = z.union([
+	z.object({
+		Name: z.string(),
+		Value: z.union([z.string(), z.boolean(), z.number()]),
+		Ramp: z.number().optional(),
+	}),
+	z.object({
+		Name: z.string(),
+		Position: z.number(),
+		Ramp: z.number().optional(),
+	}),
+]);
 
 const withId = <T extends $ZodLooseShape>(obj: T) => z.object({
 	Id: z.string(),
@@ -114,10 +121,10 @@ const requestValidators = {
 		Inputs: crossPointSpec,
 		Value: z.boolean(),
 	}),
-} satisfies Record<string, z.ZodObject<Record<string, z.ZodType>> | z.ZodArray<z.ZodString>>;
+} satisfies Record<string, z.ZodType>;
 
-type MethodWithoutParams = typeof noParamMethods[number];
-type MethodWithParams = keyof typeof requestValidators;
+export type MethodWithoutParams = typeof noParamMethods[number];
+export type MethodWithParams = keyof typeof requestValidators;
 export type CommandMethod = MethodWithoutParams | MethodWithParams;
 
 export type ParamTypeMap = {
