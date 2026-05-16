@@ -14,11 +14,13 @@
 	},
 	"scripts": {
 		"build": "tsc --project tsconfig.production.json",
-		"prepublishOnly": "npm run build",
+		"prepare": "npm run build",
+		"prepublishOnly": "npm test && npm run test-noop",
 		"test": "xo && tsc && ava",
 		"lint": "xo",
 		"format": "xo --fix",
-		"test-only": "ava"
+		"test-only": "ava",
+		"test-noop": "ava -- --noop-validator"
 	},
 	"main": "dist/index.js",
 	"type": "module",

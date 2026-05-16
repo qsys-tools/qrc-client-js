@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import ava, {type ExecutionContext, type SerialFn} from 'ava'; // eslint-disable-line ava/use-test
 import delay from 'delay';
 import isCI from 'is-ci';
@@ -21,6 +22,12 @@ import {
 // @ts-expect-error Just making `.only` work for local testing
 const test: SerialFn = isCI ? ava.serial.skip : ava.serial;
 
+const useNoopValidator = process.argv.includes('--noop-validator');
+
+if (useNoopValidator) {
+	console.log('Using the noop validator');
+}
+
 let connectionJSON;
 
 try {
@@ -33,8 +40,9 @@ const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
+
 	const client = new QrcClient({
-		validator: new ZodValidator({parseLevel: 'strict', onParseFailure: 'throw'}),
+		validator: useNoopValidator ? undefined : new ZodValidator({parseLevel: 'strict', onParseFailure: 'throw'}),
 	});
 	client.on('error', error => {
 		console.error(`Error in ${title}`);
