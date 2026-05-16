@@ -5,8 +5,10 @@
 ## Install
 
 ```
-$ npm install qsys-qrc-client zen-observable
+$ npm install qsys-qrc-client zen-observable zod
 ```
+
+Zod is technically an optional peer dependency, but it is required for type hints. If you don't want the Zod Validator in production, you should at least install it as a dev dependency.
 
 You can replace `zen-observable` with whichever Observable implementation you want. See [any-observable](https://www.npmjs.com/package/any-observable).
 

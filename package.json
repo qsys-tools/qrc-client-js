@@ -57,8 +57,15 @@
 		"p-event": "^7.1.0",
 		"typescript": "^6.0.3",
 		"xo": "^2.0.2",
-		"zen-observable": "^0.10.0",
+		"zen-observable": "^0.10.0"
+	},
+	"peerDependencies": {
 		"zod": "^4.4.3"
+	},
+	"peerDependenciesMeta": {
+		"zod": {
+			"optional": true
+		}
 	},
 	"ava": {
 		"files": [
