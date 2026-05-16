@@ -3,7 +3,7 @@ import type {
 } from './types.ts';
 import type {
 	CommandMethod, InferCommandParams, MethodWithoutParams, MethodWithParams,
-} from './validation/parse-request.ts';
+} from './validation/index.ts';
 
 export type PartialQrcCommand<M extends CommandMethod>
 	= M extends MethodWithoutParams
@@ -82,7 +82,6 @@ export const addComponentControlsToGroup = (groupId: string, componentName: stri
 	},
 } satisfies PartialQrcCommand<'ChangeGroup.AddComponentControl'>);
 
-// TODO: Not any
 export const pollGroup = (groupId: string) => ({
 	method: 'ChangeGroup.Poll',
 	params: {
@@ -119,7 +118,6 @@ export const removeNamedControlsFromGroup = (groupId: string, controlNames: stri
 	},
 } satisfies PartialQrcCommand<'ChangeGroup.Remove'>);
 
-// TODO: Not any
 export const autoPollGroup = (groupId: string, rate: number) => ({
 	method: 'ChangeGroup.AutoPoll',
 	params: {

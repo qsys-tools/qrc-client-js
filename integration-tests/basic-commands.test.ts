@@ -5,7 +5,7 @@ import ava, {type ExecutionContext, type SerialFn} from 'ava'; // eslint-disable
 import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
-import QrcClient from '../src/qrc-client.ts';
+import QrcClient, {ZodValidator} from '../src/index.ts';
 import {
 	setNamedControl,
 	getComponentControls,
@@ -33,7 +33,9 @@ const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
-	const client = new QrcClient({parseLevel: 'strict', onParseFailure: 'throw'});
+	const client = new QrcClient({
+		validator: new ZodValidator({parseLevel: 'strict', onParseFailure: 'throw'}),
+	});
 	client.on('error', error => {
 		console.error(`Error in ${title}`);
 		console.error(error);
@@ -175,7 +177,6 @@ test('addComponentControlsToGroup', withEmulator, async (t: ExecutionContext, cl
 test('pollGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
 	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainMute'])));
 
-	// TODO: We are currently relying on ordering for this test that is not guaranteed by the API.
 	const {Id, Changes: [gain, mute]} = await client.send(pollGroup('my group'));
 
 	t.is(Id, 'my group');
@@ -192,7 +193,6 @@ test('pollGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) =
 test('invalidateGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
 	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain'])));
 
-	// TODO: fix types and expand this test
 	await client.send(pollGroup('my group'));
 
 	const {Changes: {length}} = await client.send(pollGroup('my group'));

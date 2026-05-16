@@ -1,6 +1,6 @@
 # qsys-qrc-client ![Node.js Build](https://github.com/qsys-tools/qrc-client-js/workflows/Node.js%20Build/badge.svg)
 
-> An external control client for QSC Q-SYS cores, written in Node.js.
+> A type-safe control client for QSC Q-SYS cores, written in Node.js.
 
 ## Install
 
@@ -13,9 +13,9 @@ You can replace `zen-observable` with whichever Observable implementation you wa
 ## Usage
 
 ```js
-import QrcClient, {commands} from 'qsys-qrc-client';
+import QrcClient, {commands, ZodValidator} from 'qsys-qrc-client';
 
-const client = new QrcClient();
+const client = new QrcClient({validator: new ZodValidator()});
 client.connect({
   port: 1710,
   host: '192.168.1.10'
@@ -36,7 +36,7 @@ async function checkStatus() {
 
 ##### command
 
-Type: Any valid [QRC command](https://q-syshelp.qsc.com/Content/External_Control/Q-Sys_Remote_Control/QRC.htm).
+Type: Any valid [QRC command](https://q-syshelp.qsc.com/Content/External_Control_APIs/QRC/PARAPI.htm).
 
 You should generate most commands using the built-in `commands` object, as described below.
 
@@ -46,7 +46,7 @@ You should generate most commands using the built-in `commands` object, as descr
 
 Type: `Promise<Object>`
 
-See [the documentation](https://q-syshelp.qsc.com/Content/External_Control/Q-Sys_Remote_Control/QRC.htm) for specific return types.
+See [the documentation](https://q-syshelp.qsc.com/Content/External_Control_APIs/QRC/PARAPI.htm) for specific return types.
 
 ### commands.getStatus() / commands.login(username, password) / etc.
 
@@ -55,6 +55,14 @@ The `commands` object has a number of helper functions to create specific QRC co
 ![Type Hints](images/type-hinting.png)
 
 For this reason, it is always recommended you use the `commands` object to generate the command objects. But you can create commands by hand if needed (i.e. a new command is not yet implemented here).
+
+### validation
+
+The library includes two different validators for validating both commands and responses:
+  * A singleton `noopValidator` instance that bypasses any validation (relying on errors returned from the Q-Sys core to identify mistakes). This is the default as it removes the runtime dependency on `zod`. (You will still need `zod` as a dev dependency for type inference though).
+  * A `ZodValidator` that is capable of validating both commands and responses. It can be configured for `loose` or `strict` validation in either direction, and it can be configured to throw or just log the error. See the `ParseOptions` export.
+
+Note: It's unlikely you want `strict` mode for response parsing on the `ZodValidator`. That mode is used during development so our tests throw errors if our validation types don't match the response.
 
 ### client.pollGroup(groupId, options)
 

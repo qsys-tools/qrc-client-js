@@ -66,9 +66,7 @@ function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>)
 	};
 }
 
-export function createCommand<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O, parseOptions?: ParseOptions): QRCCommand<M>;
-export function createCommand<M extends MethodWithoutParams>(method: M, params?: unknown, parseOptions?: ParseOptions): QRCCommand<M>;
-export function createCommand<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O, parseOptions?: ParseOptions): QRCCommand<M> {
+export function createCommand<M extends CommandMethod>(method: M, params?: unknown, parseOptions?: ParseOptions): QRCCommand<M> {
 	// @ts-expect-error Don't understand why the typeguard isn't sufficient here
 	return wrap(method, parseCommandParameters(method, params, parseOptions));
 }

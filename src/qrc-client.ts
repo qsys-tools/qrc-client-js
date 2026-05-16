@@ -19,9 +19,8 @@ import QrcError from './lib/qrc-error.ts';
 import SocketWrapper from './lib/socket-wrapper.ts';
 import type {ObservableConstructor} from './lib/observable.ts';
 import {
-	createCommand,
-	parseResponseResult,
-	type ParseOptions,
+	noopValidator,
+	type Validator,
 	type CommandMethod,
 	type MethodWithoutParams,
 	type MethodWithParams,
@@ -41,10 +40,12 @@ type SendArgs<M extends CommandMethod>
 				: never
 	);
 
-type QrcClientOptions = ParseOptions;
+export type QrcClientOptions = {
+	validator?: Validator;
+};
 
 export default class QrcClient extends SocketWrapper {
-	readonly options: QrcClientOptions;
+	readonly validator: Validator;
 
 	readonly readStream: Readable;
 
@@ -54,9 +55,9 @@ export default class QrcClient extends SocketWrapper {
 
 	private readonly _map = new UidMap<ResponseHandler<any>>();
 
-	constructor(options: QrcClientOptions = {}) {
+	constructor({validator = noopValidator}: QrcClientOptions = {}) {
 		super();
-		this.options = options;
+		this.validator = validator;
 
 		for (const eventName of ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']) {
 			this._forwardedEvents[eventName] = (...args: unknown[]) => {
@@ -131,7 +132,7 @@ export default class QrcClient extends SocketWrapper {
 					reject(error);
 				} else {
 					try {
-						resolve(parseResponseResult(method, result, this.options));
+						resolve(this.validator.parseResponseResult(method, result));
 					} catch (error) {
 						// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 						reject(error);
@@ -140,8 +141,7 @@ export default class QrcClient extends SocketWrapper {
 			});
 
 			try {
-				// @ts-expect-error types are hard
-				this.writeStream.write({...createCommand(method, parameters, this.options), id});
+				this.writeStream.write({...this.validator.createCommand(method, parameters), id});
 			} catch (error) {
 				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 				reject(error);

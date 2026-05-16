@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import test from 'ava';
 import {ZodError} from 'zod';
 import {createCommand} from './parse-request.ts';
@@ -56,7 +55,6 @@ test('should create Mixer and ChangeGroup commands', t => {
 });
 
 test('should throw an error if params are incorrect', t => {
-	// @ts-expect-error
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const error: ZodError = t.throws(() => createCommand('ChangeGroup.AddControl', {
 		Id: 'My Control',
