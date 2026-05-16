@@ -1,8 +1,10 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import type z from 'zod';
-import type {EmptyObject} from 'type-fest';
 import {noParameterMethods, requestValidators, strictRequestValidators} from './request-validators.ts';
 import {getParseLevel, handleError, type ParseOptions} from './validation-options.ts';
+
+declare const emptyObjectSymbol: unique symbol;
+export type EmptyObject = {[emptyObjectSymbol]?: never};
 
 export type MethodWithoutParams = typeof noParameterMethods[number];
 export type MethodWithParams = keyof typeof requestValidators;
