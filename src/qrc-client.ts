@@ -3,21 +3,18 @@ import {type Readable, type Writable} from 'node:stream';
 import {type Socket} from 'node:net';
 import EventEmitter from 'node:events';
 import pump from 'pump';
-import AnyObservable from 'any-observable';
 import {
-	type AutoPollUpdate,
 	type JsonRpcRequest,
 	type JsonRpcResponse,
 } from './types.ts';
 import {
-	autoPollGroup, destroyGroup, noOp, type PartialQrcCommand,
+	noOp, type PartialQrcCommand,
 } from './commands.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
 } from './lib/stream-transforms.ts';
 import UidMap from './lib/uid-map.ts';
 import QrcError from './lib/qrc-error.ts';
-import type {ObservableConstructor} from './lib/observable.ts';
 import {
 	noopValidator,
 	type Validator,
@@ -27,9 +24,7 @@ import {
 	type InferCommandParams,
 	type InferResponseResult,
 } from './validation/index.ts';
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-const Observable = AnyObservable as ObservableConstructor;
+import {QrcPollGroup} from './lib/poll-group.ts';
 
 type SendArgs<M extends CommandMethod>
 	= [PartialQrcCommand<M>]
@@ -55,6 +50,7 @@ export default class QrcClient extends EventEmitter {
 	readonly socket;
 
 	private readonly _map = new UidMap<PromiseWithResolvers<any> & {method: CommandMethod}>();
+	private readonly pollGroups = new Map<string, QrcPollGroup>();
 
 	private readonly requestHandlers = new EventEmitter();
 
@@ -117,6 +113,7 @@ export default class QrcClient extends EventEmitter {
 		);
 
 		this.readStream.on('data', this._data);
+		this.requestHandlers.on('ChangeGroup.Poll', this.handleChangeGroupPoll);
 	}
 
 	end = () => {
@@ -160,27 +157,14 @@ export default class QrcClient extends EventEmitter {
 		return promise;
 	}
 
-	pollGroup(groupId: string, {rate = 0.2, autoDestroy = false}: {rate?: number; autoDestroy?: boolean} = {}) {
-		return new Observable<AutoPollUpdate>(observer => {
-			const handler = ({params}: JsonRpcRequest) => {
-				const update = this.validator.parseResponseResult('ChangeGroup.Poll', params);
-				if (update.Id === groupId && update.Changes && (update.Changes.length > 0)) {
-					observer.next(update);
-				}
-			};
+	pollGroup(groupId: string) {
+		let pollGroup = this.pollGroups.get(groupId);
+		if (!pollGroup) {
+			pollGroup = new QrcPollGroup(this, groupId);
+			this.pollGroups.set(groupId, pollGroup);
+		}
 
-			this.requestHandlers.on('ChangeGroup.Poll', handler);
-
-			void this.send(autoPollGroup(groupId, rate));
-
-			return () => {
-				if (autoDestroy) {
-					void this.send(destroyGroup(groupId));
-				}
-
-				this.requestHandlers.on('ChangeGroup.Poll', handler);
-			};
-		});
+		return pollGroup;
 	}
 
 	private readonly _data = (message: JsonRpcRequest | JsonRpcResponse) => {
@@ -211,5 +195,17 @@ export default class QrcClient extends EventEmitter {
 		}
 
 		this.requestHandlers.emit(message.method, message);
+	};
+
+	private readonly handleChangeGroupPoll = (message: JsonRpcRequest) => {
+		const {params} = message;
+		const update = this.validator.parseResponseResult('ChangeGroup.Poll', params);
+		if (update?.Changes?.length > 0) {
+			const pollGroup = this.pollGroups.get(update.Id);
+
+			if (pollGroup) {
+				pollGroup._handleAutoPollUpdate(update);
+			}
+		}
 	};
 }

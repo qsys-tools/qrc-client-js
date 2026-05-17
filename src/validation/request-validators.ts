@@ -4,21 +4,6 @@ import type {$ZodLooseShape} from 'zod/v4/core';
 export const noParameterMethods = ['NoOp', 'StatusGet', 'Component.GetComponents'] as const;
 
 const makeValidators = (strictObjects: boolean) => {
-	const conditionalObject = strictObjects ? z.strictObject : z.object;
-
-	const setControlValueSchema = z.union([
-		conditionalObject({
-			Name: z.string(),
-			Value: z.union([z.string(), z.boolean(), z.number()]),
-			Ramp: z.number().optional(),
-		}),
-		conditionalObject({
-			Name: z.string(),
-			Position: z.number(),
-			Ramp: z.number().optional(),
-		}),
-	]);
-
 	const withId = <T extends $ZodLooseShape>(object: T) => conditionalObject({
 		Id: z.string(),
 		...object,
@@ -28,6 +13,20 @@ const makeValidators = (strictObjects: boolean) => {
 		Name: z.string(),
 		...object,
 	});
+
+	const conditionalObject = strictObjects ? z.strictObject : z.object;
+
+	const setControlValueSchema = z.union([
+		withName({
+			Value: z.union([z.string(), z.boolean(), z.number()]),
+			Ramp: z.number().optional(),
+		}),
+		withName({
+			Name: z.string(),
+			Position: z.number(),
+			Ramp: z.number().optional(),
+		}),
+	]);
 
 	const crossPointSpec = z.string();
 

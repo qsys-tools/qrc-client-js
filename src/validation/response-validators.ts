@@ -82,7 +82,7 @@ const makeValidators = (strictObjects: boolean) => {
 		'ChangeGroup.AutoPoll': z.literal(true),
 		'ChangeGroup.Poll': conditionalObject({
 			Id: z.string(),
-			Changes: z.array(controlStatus),
+			Changes: z.array(z.union([controlStatus, componentControlStatus])),
 		}),
 	} satisfies Partial<Record<CommandMethod, z.ZodType>>;
 };
