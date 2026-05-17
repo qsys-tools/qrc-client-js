@@ -9,18 +9,23 @@ export type HasStatusCode = {
 	Status: StatusCode;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
+type JsonRpcId = string | number | null;
+
 export type JsonRpcRequest = {
-	jsonrpc?: '2.0';
-	id?: number | string;
+	jsonrpc: '2.0';
 	method: string;
-	params?: Record<string, any>;
+	params?: any[] | Record<string, any>;
+	id?: JsonRpcId;
 };
 
-export type JsonRpcResponse<T> = {
+type JsonRpcBaseResponse = {
 	jsonrpc: '2.0';
-	id?: number | string;
-	result?: T;
-	error?: JsonRpcError;
+	id: JsonRpcId;
+};
+
+export type JsonRpcSuccessResponse<T = any> = JsonRpcBaseResponse & {
+	result: T;
 };
 
 export type JsonRpcError = {
@@ -28,6 +33,17 @@ export type JsonRpcError = {
 	message?: string;
 	data?: any;
 };
+
+export type JsonRpcErrorResponse = JsonRpcBaseResponse & {
+	error: {
+		code: number;
+		message: string;
+		data?: any;
+	};
+};
+
+// The union type for any response
+export type JsonRpcResponse<T = any> = JsonRpcSuccessResponse<T> | JsonRpcErrorResponse;
 
 export type EngineStatus = {
 	Platform: string;

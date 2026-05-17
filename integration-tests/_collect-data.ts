@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-type-assertion,unicorn/prefer-spread */
 import fs from 'node:fs';
+import {Socket} from 'node:net';
 import path from 'node:path';
 import {pEvent} from 'p-event';
 import {makeDirectorySync} from 'make-dir';
@@ -17,15 +18,15 @@ try {
 }
 
 const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
-
-const client = new QrcClient();
+const socket = new Socket();
+const client = new QrcClient({socket});
 client.on('error', error => {
 	console.error(error);
 });
 
 const connectEvent = pEvent(client, 'connect');
 
-client.connect(connectionInfo);
+socket.connect(connectionInfo);
 await connectEvent;
 
 const dataDir = path.join(import.meta.dirname, 'data');

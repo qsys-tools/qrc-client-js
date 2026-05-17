@@ -1,12 +1,13 @@
+/* eslint-disable unicorn/prefer-event-target */
 import {type Readable, type Writable} from 'node:stream';
-import {Socket} from 'node:net';
+import {type Socket} from 'node:net';
+import EventEmitter from 'node:events';
 import pump from 'pump';
 import AnyObservable from 'any-observable';
 import {
 	type AutoPollUpdate,
 	type JsonRpcRequest,
 	type JsonRpcResponse,
-	type ResponseHandler,
 } from './types.ts';
 import {
 	autoPollGroup, destroyGroup, noOp, type PartialQrcCommand,
@@ -16,7 +17,6 @@ import {
 } from './lib/stream-transforms.ts';
 import UidMap from './lib/uid-map.ts';
 import QrcError from './lib/qrc-error.ts';
-import SocketWrapper from './lib/socket-wrapper.ts';
 import type {ObservableConstructor} from './lib/observable.ts';
 import {
 	noopValidator,
@@ -41,35 +41,42 @@ type SendArgs<M extends CommandMethod>
 	);
 
 export type QrcClientOptions = {
+	socket: Socket;
 	validator?: Validator;
 };
 
-export default class QrcClient extends SocketWrapper {
+export default class QrcClient extends EventEmitter {
 	readonly validator: Validator;
 
 	readonly readStream: Readable;
 
 	readonly writeStream: Writable;
 
-	readonly socket: Socket = new Socket();
+	readonly socket;
 
-	private readonly _map = new UidMap<ResponseHandler<any>>();
+	private readonly _map = new UidMap<PromiseWithResolvers<any> & {method: CommandMethod}>();
 
-	constructor({validator = noopValidator}: QrcClientOptions = {}) {
+	private readonly requestHandlers = new EventEmitter();
+
+	private readonly forwardedEvents: Array<[string, (...args: unknown[]) => void]>;
+
+	constructor({validator = noopValidator, socket}: QrcClientOptions) {
 		super();
+		this.socket = socket;
 		this.validator = validator;
 
-		for (const eventName of ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']) {
-			this._forwardedEvents[eventName] = (...args: unknown[]) => {
-				this.emit(eventName, ...args);
-			};
-		}
+		this.forwardedEvents = ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']
+			.map(eventName => {
+				const handler = (...args: unknown[]) => {
+					this.emit(eventName, ...args);
+				};
 
-		this.once('error', () => {
-			this.destroy();
-		});
+				this.socket.on(eventName, handler);
 
-		this._connectForwardedEvents(this.socket);
+				return [eventName, handler];
+			});
+
+		this.once('error', this.destroy);
 
 		this.readStream = log('received: ');
 
@@ -112,10 +119,16 @@ export default class QrcClient extends SocketWrapper {
 		this.readStream.on('data', this._data);
 	}
 
-	destroy = (error?: Error): void => {
+	end = () => {
+		this.socket.end();
+	};
+
+	destroy = (error?: Error) => {
 		this.socket.destroy(error);
 		this.readStream.destroy(error);
-		this._disconnectForwardedEvents(this.socket);
+		for (const [eventName, handler] of this.forwardedEvents) {
+			this.socket.off(eventName, handler);
+		}
 	};
 
 	// eslint-disable-next-line @typescript-eslint/unified-signatures
@@ -126,42 +139,37 @@ export default class QrcClient extends SocketWrapper {
 		const method = typeof args[0] === 'string' ? args[0] : args[0].method;
 		// @ts-expect-error types are hard
 		const parameters: InferCommandParams<M> = typeof args[0] === 'string' ? args[1] : ('params' in args[0] ? args[0].params : undefined);
-		return new Promise((resolve, reject) => {
-			const id = this._map.put((error: QrcError | undefined, result?: InferResponseResult<M>): void => {
-				if (error) {
-					reject(error);
-				} else {
-					try {
-						resolve(this.validator.parseResponseResult(method, result));
-					} catch (error) {
-						// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-						reject(error);
-					}
-				}
-			});
 
-			try {
-				this.writeStream.write({...this.validator.createCommand(method, parameters), id});
-			} catch (error) {
-				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-				reject(error);
-			}
+		const {resolve, reject, promise: rawPromise} = Promise.withResolvers<InferResponseResult<M>>();
+		const promise = rawPromise.finally(() => {
+			this._map.delete(id);
 		});
+		const id = this._map.put({
+			method,
+			resolve,
+			reject,
+			promise,
+		});
+
+		try {
+			this.writeStream.write({...this.validator.createCommand(method, parameters), id});
+		} catch (error) {
+			reject(error);
+		}
+
+		return promise;
 	}
 
 	pollGroup(groupId: string, {rate = 0.2, autoDestroy = false}: {rate?: number; autoDestroy?: boolean} = {}) {
 		return new Observable<AutoPollUpdate>(observer => {
-			const handler = ({method, params}: JsonRpcRequest): void => {
-				if (method === 'ChangeGroup.Poll') {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-					const update = params as unknown as AutoPollUpdate;
-					if (update.Id === groupId && update.Changes && (update.Changes.length > 0)) {
-						observer.next(update);
-					}
+			const handler = ({params}: JsonRpcRequest) => {
+				const update = this.validator.parseResponseResult('ChangeGroup.Poll', params);
+				if (update.Id === groupId && update.Changes && (update.Changes.length > 0)) {
+					observer.next(update);
 				}
 			};
 
-			this.on('request', handler);
+			this.requestHandlers.on('ChangeGroup.Poll', handler);
 
 			void this.send(autoPollGroup(groupId, rate));
 
@@ -170,31 +178,38 @@ export default class QrcClient extends SocketWrapper {
 					void this.send(destroyGroup(groupId));
 				}
 
-				this.off('request', handler);
+				this.requestHandlers.on('ChangeGroup.Poll', handler);
 			};
 		});
 	}
 
-	private readonly _data = (data: any) => {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		if (data.result ?? data.error) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-			const response = (data as JsonRpcResponse<any>);
-			if (typeof response.id === 'number') {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-				const callback: ResponseHandler<any> | undefined = this._map.pull(data.id);
-				if (callback) {
-					if (response.error) {
-						callback(new QrcError(response.error));
-					} else {
-						callback(undefined, response.result);
-					}
-				}
+	private readonly _data = (message: JsonRpcRequest | JsonRpcResponse) => {
+		if ('result' in message || 'error' in message) {
+			if (typeof message.id !== 'number') {
+				console.warn(`Received a non-numeric Id: ${message.id}... Which doesn't make sense. `);
+				return;
 			}
-		} else {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-			const request = (data as JsonRpcRequest);
-			this.emit('request', request);
+
+			const resolvers = this._map.pull(message.id);
+
+			if (!resolvers) {
+				return;
+			}
+
+			if ('error' in message) {
+				resolvers.reject(new QrcError(message.error));
+				return;
+			}
+
+			try {
+				resolvers.resolve(this.validator.parseResponseResult(resolvers.method, message.result));
+			} catch (error) {
+				resolvers.reject(error);
+			}
+
+			return;
 		}
+
+		this.requestHandlers.emit(message.method, message);
 	};
 }

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {Socket} from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -41,8 +42,11 @@ const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
 
+	const socket = new Socket();
+
 	const client = new QrcClient({
 		validator: useNoopValidator ? undefined : new ZodValidator({parseLevel: 'strict', onParseFailure: 'throw'}),
+		socket,
 	});
 	client.on('error', error => {
 		console.error(`Error in ${title}`);
@@ -53,7 +57,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	const connectEvent = pEvent(client, 'connect');
 	const closeEvent = pEvent(client, 'close');
 
-	client.connect(connectionInfo);
+	socket.connect(connectionInfo);
 	await connectEvent;
 	await client.send(setNamedControl('AllOff', true));
 
