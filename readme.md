@@ -68,16 +68,15 @@ Note: It's unlikely you want `strict` mode for response parsing on the `ZodValid
 
 ### client.pollGroup(groupId, options)
 
-The only command not sent using `client.send(...)`. It returns an observable that updates every time values in the polling group change.
+A convenience class for sending poll group commands. It implements observable, so you can just listen to changes.
+You must send the `autoPoll` command for change events to occur, however.
 
-Before calling, you need to setup the polling group:
 
  ```js
-await client.send(commands.addNamedControlToGroup('groupId', ['controlName1', 'controlName2']));
+const group = client.pollGroup('groupId');
+group.addControl('controlName1', 'controlName2');
 
-const observable = client.pollGroup('groupId', 0.1);
-
-observable.subscribe(data => {
+group.subscribe(data => {
     for (const change of data.Changes) {
       if(change.Name === 'controlName1') {
         // do something with change.Value / change.String / change.Position
@@ -86,6 +85,9 @@ observable.subscribe(data => {
       }
     }
 });
+
+// Start receiving events, updated 10x a second:
+group.autoPoll(0.1);
  ```
 
 ##### groupId
