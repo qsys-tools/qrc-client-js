@@ -3,67 +3,46 @@ import type QrcClient from '../qrc-client.ts';
 import type {CommandMethod, InferCommandParams, InferResponseResult} from '../validation/index.ts';
 import type {AutoPollUpdate} from '../types.ts';
 import type {
-	ObservableConstructor, SubscriptionObserver, ObservableInstance, Observer, Subscription,
+	ObservableConstructor, SubscriptionObserver,
 } from './observable.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Observable = AnyObservable as ObservableConstructor;
+const BaseClass = (Observable ?? Object);
 
 type ChangeGroupCommand = Extract<CommandMethod, `ChangeGroup.${string}`>;
 
-const assertObservable = () => {
-	if (!Observable) {
-		throw new Error('No observable implementation found. Please add one via `npm install zen-observable`, or install any implementation. See the `any-observable` package on npm for more details');
-	}
+const warnObservable = () => {
+	throw new Error('No observable implementation found. Please add one via `npm install zen-observable`, or install any implementation. See the `any-observable` package on npm for more details');
 };
 
-export class QrcPollGroup implements ObservableInstance<AutoPollUpdate> {
+export class QrcPollGroup extends BaseClass<AutoPollUpdate> {
 	private readonly client: QrcClient;
 	private readonly id: string;
-	private readonly observable?: ObservableInstance<AutoPollUpdate>;
-	private observer?: SubscriptionObserver<AutoPollUpdate>;
+
+	private readonly updateListeners: Array<(update: AutoPollUpdate) => void> = [];
 
 	public constructor(client: QrcClient, id: string) {
-		this.observable
-			= typeof Observable === 'function'
-				? new Observable(observer => {
-					this.observer = observer;
-					void this.autoPoll();
-					return () => {
-						this.observer = undefined;
-						void this.clear();
-					};
-				})
-				: undefined;
+		// @ts-expect-error AnyObservable might actually be undefined, but that's too hard for Typescript to figure out
+		super(BaseClass === Object
+			? undefined
+			: (observer: SubscriptionObserver<AutoPollUpdate>) => {
+				const handler = (update: AutoPollUpdate) => {
+					observer.next(update);
+				};
+
+				this.updateListeners.push(handler);
+
+				return () => {
+					this.updateListeners.splice(this.updateListeners.indexOf(handler), 1);
+				};
+			});
 		this.client = client;
 		this.id = id;
-	}
-	subscribe(
-		onNext: (value: AutoPollUpdate) => void,
-		onError?: (errorValue: Error) => void,
-		onComplete?: () => void
-	): Subscription;
-	subscribe(observer: Observer<AutoPollUpdate>): Subscription;
-
-	subscribe(...args: [Observer<AutoPollUpdate>] | [
-		onNext: (value: AutoPollUpdate) => void,
-		onError?: (errorValue: Error) => void,
-		onComplete?: () => void,
-	]) {
-		assertObservable();
-		// @ts-expect-error types are hard
-		return this.observable?.subscribe(...args);
-	}
-
-	// Returns itself
-	[Symbol.observable]() {
-		assertObservable();
-		return this.observable!;
-	}
-
-	async send<M extends ChangeGroupCommand>(method: M, parameters: Omit<InferCommandParams<M>, 'Id'>): Promise<InferResponseResult<M>> {
-		// @ts-expect-error TypeScript cannot detect that Omit<type, 'Id'> & {Id: string} is the same as the full type.
-		return this.client.send<M>(method, {...parameters, Id: this.id} satisfies InferCommandParams<M>);
+		if (!this.subscribe) {
+			this.subscribe = warnObservable;
+			this[Symbol.observable] = warnObservable;
+		}
 	}
 
 	async addControl(...controls: string[]) {
@@ -105,9 +84,18 @@ export class QrcPollGroup implements ObservableInstance<AutoPollUpdate> {
 		});
 	}
 
+	/**
+	 * To be called from QRC client, users should not use.
+	 * @param update
+	 */
 	_handleAutoPollUpdate(update: AutoPollUpdate) {
-		if (this.observer) {
-			this.observer.next(update);
+		for (const handler of this.updateListeners) {
+			handler(update);
 		}
+	}
+
+	private async send<M extends ChangeGroupCommand>(method: M, parameters: Omit<InferCommandParams<M>, 'Id'>): Promise<InferResponseResult<M>> {
+		// @ts-expect-error TypeScript cannot detect that Omit<type, 'Id'> & {Id: string} is the same as the full type.
+		return this.client.send<M>(method, {...parameters, Id: this.id} satisfies InferCommandParams<M>);
 	}
 }

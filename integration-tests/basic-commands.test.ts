@@ -246,14 +246,15 @@ test('removeNamedControlsFromGroup', withEmulator, async (t: ExecutionContext, c
 });
 
 test('pollGroups', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainBypass'])));
-
-	const observable = client.pollGroup('my group');
+	const group = client.pollGroup('my group');
+	t.true(await group.addControl('GainGain', 'GainBypass'));
 
 	const changes: unknown[] = [];
-	observable.subscribe(value => {
+	group.subscribe(value => {
 		changes.push(value.Changes);
 	});
+
+	t.true(await group.autoPoll());
 
 	await delay(500);
 
