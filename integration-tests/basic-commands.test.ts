@@ -9,6 +9,7 @@ import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
 import {WebSocket} from 'ws';
+import {v4 as uuidV4} from 'uuid';
 import QrcClient, {ZodValidator} from '../src/index.ts';
 import {
 	setNamedControl,
@@ -42,9 +43,17 @@ try {
 	connectionJSON = '{"host": "127.0.0.1", "port": 1710}';
 }
 
-const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
-
 const USE_WEBSOCKET = false;
+
+const connectionInfo: {host: string; port: number} = USE_WEBSOCKET ? {host: '127.0.0.1', port: '8080'} : JSON.parse(connectionJSON);
+
+const groupIds: string[] = [];
+
+const getUniqueGroupId = () => {
+	const id = uuidV4();
+	groupIds.push(id);
+	return id;
+};
 
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
@@ -52,7 +61,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	let channel: CommunicationChannel & EventEmitter;
 
 	if (USE_WEBSOCKET) {
-		const websocket = new WebSocket(`ws://${connectionInfo.host}/qrc-public-api/v0`);
+		const websocket = new WebSocket(`ws://${connectionInfo.host}:${connectionInfo.port}/qrc-public-api/v0`);
 		const wsChannel = new WebsocketChannel(websocket);
 		channel = wsChannel;
 	} else {
@@ -81,6 +90,8 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	await client.send(setNamedControl('AllOff', true));
 
 	t.teardown(async () => {
+		await Promise.all(groupIds.map(async id => client.send(destroyGroup(id))));
+		groupIds.splice(0);
 		await delay(200);
 		channel.end();
 		await closeEvent;
@@ -198,74 +209,80 @@ test('setComponentControls with Results', withEmulator, async (t: ExecutionConte
 });
 
 test('addNamedControlToGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainMute'])));
+	t.true(await client.send(addNamedControlToGroup(getUniqueGroupId(), ['GainGain', 'GainMute'])));
 });
 
 test('addComponentControlsToGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addComponentControlsToGroup('my group', 'MyGain', ['bypass', 'invert'])));
+	t.true(await client.send(addComponentControlsToGroup(getUniqueGroupId(), 'MyGain', ['bypass', 'invert'])));
 });
 
 test('pollGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainMute'])));
+	const groupId = getUniqueGroupId();
+	t.true(await client.send(addNamedControlToGroup(groupId, ['GainGain', 'GainMute'])));
 
-	const {Id, Changes: [gain, mute]} = await client.send(pollGroup('my group'));
+	const {Id, Changes: [gain, mute]} = await client.send(pollGroup(groupId));
 
-	t.is(Id, 'my group');
+	t.is(Id, groupId);
 	t.is(gain.Name, 'GainGain');
 	t.is(gain.Value, -100);
 	t.is(mute.Name, 'GainMute');
 	t.is(mute.Value, 0);
 
-	const {Changes: {length}} = await client.send(pollGroup('my group'));
+	const {Changes: {length}} = await client.send(pollGroup(groupId));
 
 	t.is(length, 0);
 });
 
 test('invalidateGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain'])));
+	const groupId = getUniqueGroupId();
+	t.true(await client.send(addNamedControlToGroup(groupId, ['GainGain'])));
 
-	await client.send(pollGroup('my group'));
+	await client.send(pollGroup(groupId));
 
-	const {Changes: {length}} = await client.send(pollGroup('my group'));
+	const {Changes: {length}} = await client.send(pollGroup(groupId));
 	t.is(length, 0);
 
-	t.true(await client.send(invalidateGroup('my group')));
+	t.true(await client.send(invalidateGroup(groupId)));
 
-	const {Id, Changes: [gain]} = await client.send(pollGroup('my group'));
+	const {Id, Changes: [gain]} = await client.send(pollGroup(groupId));
 
-	t.is(Id, 'my group');
+	t.is(Id, groupId);
 	t.is(gain.Name, 'GainGain');
 	t.is(gain.Value, -100);
 });
 
 test('clearGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainBypass'])));
-	t.true(await client.send(clearGroup('my group')));
-	t.true(await client.send(invalidateGroup('my group')));
+	const groupId = getUniqueGroupId();
+	t.true(await client.send(addNamedControlToGroup(groupId, ['GainGain', 'GainBypass'])));
+	t.true(await client.send(clearGroup(groupId)));
+	t.true(await client.send(invalidateGroup(groupId)));
 
-	const {Changes: {length}} = await client.send(pollGroup('my group'));
+	const {Changes: {length}} = await client.send(pollGroup(groupId));
 	t.is(length, 0);
 });
 
 test('destroyGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainBypass'])));
-	t.true(await client.send(destroyGroup('my group')));
+	const groupId = getUniqueGroupId();
+	t.true(await client.send(addNamedControlToGroup(groupId, ['GainGain', 'GainBypass'])));
+	t.true(await client.send(destroyGroup(groupId)));
 
-	await t.throwsAsync(async () => client.send(pollGroup('my group')), {message: /group.*does not exist/v}, 'foo');
+	await t.throwsAsync(async () => client.send(pollGroup(groupId)), {message: /group.*does not exist/v}, 'foo');
 });
 
 test('removeNamedControlsFromGroup', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	t.true(await client.send(addNamedControlToGroup('my group', ['GainGain', 'GainBypass'])));
-	t.true(await client.send(removeNamedControlsFromGroup('my group', ['GainBypass'])));
-	t.true(await client.send(invalidateGroup('my group')));
+	const groupId = getUniqueGroupId();
+	t.true(await client.send(addNamedControlToGroup(groupId, ['GainGain', 'GainBypass'])));
+	t.true(await client.send(removeNamedControlsFromGroup(groupId, ['GainBypass'])));
+	t.true(await client.send(invalidateGroup(groupId)));
 
-	const {Changes} = await client.send(pollGroup('my group'));
+	const {Changes} = await client.send(pollGroup(groupId));
 	t.is(Changes.length, 1);
 	t.is(Changes[0].Name, 'GainGain');
 });
 
 test('pollGroups', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
-	const group = client.pollGroup('my group');
+	const groupId = getUniqueGroupId();
+	const group = client.pollGroup(groupId);
 	t.true(await group.addControl('GainGain', 'GainBypass'));
 
 	const changes: unknown[] = [];
