@@ -1,36 +1,31 @@
+import {v4 as uuidv4} from 'uuid';
+
 class UidMap<T> {
-	private readonly _map = new Map<number, T>();
+	private readonly _map = new Map<string, T>();
 
-	private _currentId = 0;
+	put(value: T) {
+		const id = uuidv4();
 
-	put(value: T): number {
-		do {
-			this._currentId++;
-			if (this._currentId >= Number.MAX_SAFE_INTEGER) {
-				this._currentId = 1;
-			}
-		} while (this._map.has(this._currentId));
+		this._map.set(id, value);
 
-		this._map.set(this._currentId, value);
-
-		return this._currentId;
+		return id;
 	}
 
-	has(id: number): boolean {
+	has(id: string): boolean {
 		return this._map.has(id);
 	}
 
-	get(id: number): T | undefined {
+	get(id: string): T | undefined {
 		return this._map.get(id);
 	}
 
-	pull(id: number): T | undefined {
+	pull(id: string): T | undefined {
 		const returnValue = this.get(id);
 		this._map.delete(id);
 		return returnValue;
 	}
 
-	delete(id: number): boolean {
+	delete(id: string): boolean {
 		return this._map.delete(id);
 	}
 
@@ -42,11 +37,11 @@ class UidMap<T> {
 		this._map.clear();
 	}
 
-	keys(): IterableIterator<number> {
+	keys(): IterableIterator<string> {
 		return this._map.keys();
 	}
 
-	entries(): IterableIterator<[number, T]> {
+	entries(): IterableIterator<[string, T]> {
 		return this._map.entries();
 	}
 
@@ -54,7 +49,7 @@ class UidMap<T> {
 		return this._map.values();
 	}
 
-	forEach(callbackFn: (value: T, key: number, map: UidMap<T>) => void, thisArg?: any): void {
+	forEach(callbackFn: (value: T, key: string, map: UidMap<T>) => void, thisArg?: any): void {
 		for (const [key, value] of this._map.entries()) {
 			callbackFn.call(thisArg, value, key, this);
 		}

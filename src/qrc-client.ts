@@ -93,8 +93,8 @@ export default class QrcClient {
 
 	private readonly _data = (message: JsonRpcMessage) => {
 		if ('result' in message || 'error' in message) {
-			if (typeof message.id !== 'number') {
-				console.warn(`Received a non-numeric Id: ${message.id}... Which doesn't make sense. `);
+			if (typeof message.id !== 'string') {
+				console.warn(`Received a non-string Id: ${message.id}... Which doesn't make sense. `);
 				return;
 			}
 
