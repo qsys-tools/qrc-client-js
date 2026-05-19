@@ -1,5 +1,4 @@
-
-import {type JsonRpcError} from '../types.ts';
+import {type JsonRpcError} from '../json-rpc.ts';
 
 export const ErrorCodes = {
 	[-32_700]: 'Parse error.', // Invalid JSON was received by the server.

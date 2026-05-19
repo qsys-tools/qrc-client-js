@@ -8,6 +8,7 @@ import QrcClient from '../src/qrc-client.ts';
 import {
 	getComponents,
 } from '../src/commands.ts';
+import {SocketChannel} from '../src/socket-channel/socket-channel.ts';
 
 let connectionJSON;
 
@@ -19,12 +20,13 @@ try {
 
 const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 const socket = new Socket();
-const client = new QrcClient({socket});
-client.on('error', error => {
+const channel = new SocketChannel(socket);
+const client = new QrcClient({channel});
+channel.on('error', error => {
 	console.error(error);
 });
 
-const connectEvent = pEvent(client, 'connect');
+const connectEvent = pEvent(channel, 'connect');
 
 socket.connect(connectionInfo);
 await connectEvent;
@@ -128,4 +130,4 @@ for (const [key, types] of shapeKeyTypes) {
 
 console.log(`\n\n ${JSON.stringify(shapeKeyDescription, null, 2)}`);
 
-client.end();
+channel.end();

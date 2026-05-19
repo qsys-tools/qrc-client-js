@@ -1,18 +1,10 @@
 /* eslint-disable unicorn/prefer-event-target */
-import {type Readable, type Writable} from 'node:stream';
-import {type Socket} from 'node:net';
 import EventEmitter from 'node:events';
-import pump from 'pump';
-import {
-	type JsonRpcRequest,
-	type JsonRpcResponse,
-} from './types.ts';
-import {
-	noOp, type PartialQrcCommand,
-} from './commands.ts';
-import {
-	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
-} from './lib/stream-transforms.ts';
+import type {
+	JsonRpcMessage,
+	JsonRpcRequest,
+} from './json-rpc.ts';
+import {type PartialQrcCommand} from './commands.ts';
 import UidMap from './lib/uid-map.ts';
 import QrcError from './lib/qrc-error.ts';
 import {
@@ -25,6 +17,7 @@ import {
 	type InferResponseResult,
 } from './validation/index.ts';
 import {QrcPollGroup} from './lib/poll-group.ts';
+import type {CommunicationChannel} from './communication-channel.ts';
 
 type SendArgs<M extends CommandMethod>
 	= [PartialQrcCommand<M>]
@@ -36,97 +29,27 @@ type SendArgs<M extends CommandMethod>
 	);
 
 export type QrcClientOptions = {
-	socket: Socket;
+	channel: CommunicationChannel;
 	validator?: Validator;
 };
 
-export default class QrcClient extends EventEmitter {
+export default class QrcClient {
 	readonly validator: Validator;
 
-	readonly readStream: Readable;
-
-	readonly writeStream: Writable;
-
-	readonly socket;
+	readonly channel: CommunicationChannel;
+	readonly channelUnsub: () => void;
 
 	private readonly _map = new UidMap<PromiseWithResolvers<any> & {method: CommandMethod}>();
 	private readonly pollGroups = new Map<string, QrcPollGroup>();
 
 	private readonly requestHandlers = new EventEmitter();
 
-	private readonly forwardedEvents: Array<[string, (...args: unknown[]) => void]>;
-
-	constructor({validator = noopValidator, socket}: QrcClientOptions) {
-		super();
-		this.socket = socket;
+	constructor({validator = noopValidator, channel}: QrcClientOptions) {
 		this.validator = validator;
-
-		this.forwardedEvents = ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']
-			.map(eventName => {
-				const handler = (...args: unknown[]) => {
-					this.emit(eventName, ...args);
-				};
-
-				this.socket.on(eventName, handler);
-
-				return [eventName, handler];
-			});
-
-		this.once('error', this.destroy);
-
-		this.readStream = log('received: ');
-
-		let finished = false;
-		const errors: any[] = [];
-
-		const finish = (error: any): void => {
-			if (error && !errors.includes(error)) {
-				errors.push(error);
-				this.emit('error', error);
-			}
-
-			if (finished) {
-				return;
-			}
-
-			finished = true;
-			this.emit('finish', error);
-		};
-
-		pump(
-			this.socket,
-			nullJsonDecoder(),
-			this.readStream,
-			finish,
-		);
-
-		this.writeStream = addRpcVersion();
-		pump(
-			this.writeStream,
-			timeout(5000, () => {
-				this.writeStream.write(noOp());
-			}),
-			log('sending: '),
-			nullJsonEncoder(),
-			this.socket,
-			finish,
-		);
-
-		this.readStream.on('data', this._data);
+		this.channel = channel;
+		this.channelUnsub = channel.subscribe(this._data);
 		this.requestHandlers.on('ChangeGroup.Poll', this.handleChangeGroupPoll);
 	}
-
-	end = () => {
-		this.socket.end();
-	};
-
-	destroy = (error?: Error) => {
-		this.socket.destroy(error);
-		this.readStream.destroy(error);
-		for (const [eventName, handler] of this.forwardedEvents) {
-			this.socket.off(eventName, handler);
-		}
-	};
 
 	// eslint-disable-next-line @typescript-eslint/unified-signatures
 	async send<M extends MethodWithParams>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
@@ -149,7 +72,7 @@ export default class QrcClient extends EventEmitter {
 		});
 
 		try {
-			this.writeStream.write({...this.validator.createCommand(method, parameters), id});
+			this.channel.send({...this.validator.createCommand(method, parameters), id});
 		} catch (error) {
 			reject(error);
 		}
@@ -167,7 +90,7 @@ export default class QrcClient extends EventEmitter {
 		return pollGroup;
 	}
 
-	private readonly _data = (message: JsonRpcRequest | JsonRpcResponse) => {
+	private readonly _data = (message: JsonRpcMessage) => {
 		if ('result' in message || 'error' in message) {
 			if (typeof message.id !== 'number') {
 				console.warn(`Received a non-numeric Id: ${message.id}... Which doesn't make sense. `);

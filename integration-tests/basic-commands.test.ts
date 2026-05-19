@@ -19,6 +19,7 @@ import {
 	destroyGroup,
 	removeNamedControlsFromGroup,
 } from '../src/commands.ts';
+import {SocketChannel} from '../src/socket-channel/socket-channel.ts';
 
 // @ts-expect-error Just making `.only` work for local testing
 const test: SerialFn = isCI ? ava.serial.skip : ava.serial;
@@ -43,19 +44,20 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 	const {title} = t;
 
 	const socket = new Socket();
+	const channel = new SocketChannel(socket);
 
 	const client = new QrcClient({
 		validator: useNoopValidator ? undefined : new ZodValidator({parseLevel: 'strict', onParseFailure: 'throw'}),
-		socket,
+		channel,
 	});
-	client.on('error', error => {
+	channel.on('error', error => {
 		console.error(`Error in ${title}`);
 		console.error(error);
 		t.fail(`Error was thrown in ${title}: ${String(error)}`);
 	});
 
-	const connectEvent = pEvent(client, 'connect');
-	const closeEvent = pEvent(client, 'close');
+	const connectEvent = pEvent(channel, 'connect');
+	const closeEvent = pEvent(channel, 'close');
 
 	socket.connect(connectionInfo);
 	await connectEvent;
@@ -63,7 +65,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 
 	t.teardown(async () => {
 		await delay(200);
-		client.end();
+		channel.end();
 		await closeEvent;
 	});
 	await run(t, client);
