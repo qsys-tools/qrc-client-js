@@ -16,3 +16,21 @@ export const captureStackTrace: (targetObject: object, constructorOpt?: Function
 		: (..._args: any[]) => {
 			/* Empty */
 		}) as any;
+
+export type PromiseWithResolvers<T> = {
+	readonly promise: Promise<T>;
+	readonly resolve: (value: T | PromiseLike<T>) => void;
+	readonly reject: (reason?: any) => void;
+};
+
+export const promiseWithResolvers = <T>(): PromiseWithResolvers<T> => {
+	let resolve: (value: T | PromiseLike<T>) => void;
+	let reject: (reason?: any) => void;
+	const promise = new Promise<T>((_resolve, _reject) => {
+		reject = _reject;
+		resolve = _resolve;
+	});
+
+	// @ts-expect-error Promise callback happens synchronous.
+	return {promise, resolve, reject};
+};

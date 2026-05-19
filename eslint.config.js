@@ -24,4 +24,7 @@ for (const cf of config) {
 	}
 }
 
+config.globals ||= {};
+config.globals.Promise = 'readonly';
+
 export default config;

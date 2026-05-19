@@ -1,15 +1,15 @@
 import type {Socket} from 'node:net';
 import type {Readable, Writable} from 'node:stream';
-import EventEmitter from 'node:events';
 import pump from 'pump';
-import type {CommunicationChannel} from '../communication-channel.ts';
 import type {JsonRpcMessage} from '../json-rpc.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
 } from './stream-transforms.ts';
+import {AbstractChannel} from './abstract-channel.ts';
 
-// eslint-disable-next-line unicorn/prefer-event-target
-export class SocketChannel extends EventEmitter implements CommunicationChannel {
+type SocketConnectionInfo = {host: string; port: number};
+
+export class SocketChannel extends AbstractChannel {
 	protected finished = false;
 	protected errors: Error[] = [];
 
@@ -19,13 +19,14 @@ export class SocketChannel extends EventEmitter implements CommunicationChannel 
 
 	private readonly socket: Socket;
 
-	private readonly callbacks: Array<(message: JsonRpcMessage) => void> = [];
-
 	private readonly forwardedEvents: Array<[string, (...args: unknown[]) => void]>;
 
-	constructor(socket: Socket) {
+	private readonly connectionInfo: SocketConnectionInfo;
+
+	constructor(socket: Socket, connectionInfo: SocketConnectionInfo) {
 		super();
 		this.socket = socket;
+		this.connectionInfo = connectionInfo;
 
 		this.forwardedEvents = ['close', 'connect', 'end', 'ready', 'lookup', 'timeout']
 			.map(eventName => {
@@ -52,21 +53,15 @@ export class SocketChannel extends EventEmitter implements CommunicationChannel 
 				this.finish('read', error);
 			},
 		);
-		this.readStream.on('data', this.onData);
+		this.readStream.on('data', this.onMessage);
+	}
+
+	connect(): void {
+		this.socket.connect(this.connectionInfo);
 	}
 
 	send(message: JsonRpcMessage): void {
 		this.writeStream.write(message);
-	}
-
-	subscribe(callback: (message: JsonRpcMessage) => void): () => void {
-		this.callbacks.push(callback);
-		return () => {
-			const index = this.callbacks.indexOf(callback);
-			if (index !== -1) {
-				this.callbacks.splice(index, 1);
-			}
-		};
 	}
 
 	destroy = (error?: Error) => {
@@ -128,11 +123,4 @@ export class SocketChannel extends EventEmitter implements CommunicationChannel 
 		this.finished = true;
 		this.emit('finish', error);
 	}
-
-	private readonly onData = (data: JsonRpcMessage): void => {
-		const callbacks = [...this.callbacks];
-		for (const callback of callbacks) {
-			callback(data);
-		}
-	};
 }

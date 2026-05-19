@@ -17,7 +17,8 @@ import {
 	type InferResponseResult,
 } from './validation/index.ts';
 import {QrcPollGroup} from './lib/poll-group.ts';
-import type {CommunicationChannel} from './communication-channel.ts';
+import type {CommunicationChannel} from './socket-channel/communication-channel.ts';
+import {promiseWithResolvers, type PromiseWithResolvers} from './lib/utils.ts';
 
 type SendArgs<M extends CommandMethod>
 	= [PartialQrcCommand<M>]
@@ -29,14 +30,14 @@ type SendArgs<M extends CommandMethod>
 	);
 
 export type QrcClientOptions = {
-	channel: CommunicationChannel;
+	channel: CommunicationChannel & EventEmitter;
 	validator?: Validator;
 };
 
 export default class QrcClient {
 	readonly validator: Validator;
 
-	readonly channel: CommunicationChannel;
+	readonly channel: CommunicationChannel & EventEmitter;
 	readonly channelUnsub: () => void;
 
 	private readonly _map = new UidMap<PromiseWithResolvers<any> & {method: CommandMethod}>();
@@ -60,7 +61,7 @@ export default class QrcClient {
 		// @ts-expect-error types are hard
 		const parameters: InferCommandParams<M> = typeof args[0] === 'string' ? args[1] : ('params' in args[0] ? args[0].params : undefined);
 
-		const {resolve, reject, promise: rawPromise} = Promise.withResolvers<InferResponseResult<M>>();
+		const {resolve, reject, promise: rawPromise} = promiseWithResolvers<InferResponseResult<M>>();
 		const promise = rawPromise.finally(() => {
 			this._map.delete(id);
 		});

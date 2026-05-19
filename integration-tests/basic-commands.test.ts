@@ -3,10 +3,12 @@ import {Socket} from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import type EventEmitter from 'node:events';
 import ava, {type ExecutionContext, type SerialFn} from 'ava'; // eslint-disable-line ava/use-test
 import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
+import {WebSocket} from 'ws';
 import QrcClient, {ZodValidator} from '../src/index.ts';
 import {
 	setNamedControl,
@@ -20,6 +22,8 @@ import {
 	removeNamedControlsFromGroup,
 } from '../src/commands.ts';
 import {SocketChannel} from '../src/socket-channel/socket-channel.ts';
+import {WebsocketChannel} from '../src/socket-channel/websocket-channel.ts';
+import type {CommunicationChannel} from '../src/socket-channel/communication-channel.ts';
 
 // @ts-expect-error Just making `.only` work for local testing
 const test: SerialFn = isCI ? ava.serial.skip : ava.serial;
@@ -40,26 +44,39 @@ try {
 
 const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 
+const USE_WEBSOCKET = false;
+
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
 
-	const socket = new Socket();
-	const channel = new SocketChannel(socket);
+	let channel: CommunicationChannel & EventEmitter;
+
+	if (USE_WEBSOCKET) {
+		const websocket = new WebSocket(`ws://${connectionInfo.host}/qrc-public-api/v0`);
+		const wsChannel = new WebsocketChannel(websocket);
+		channel = wsChannel;
+	} else {
+		const socket = new Socket();
+		const socketChannel = new SocketChannel(socket, connectionInfo);
+
+		socketChannel.on('error', error => {
+			console.error(`Error in ${title}`);
+			console.error(error);
+			t.fail(`Error was thrown in ${title}: ${String(error)}`);
+		});
+
+		channel = socketChannel;
+	}
 
 	const client = new QrcClient({
 		validator: useNoopValidator ? undefined : new ZodValidator({parseLevel: 'strict', onParseFailure: 'throw'}),
 		channel,
 	});
-	channel.on('error', error => {
-		console.error(`Error in ${title}`);
-		console.error(error);
-		t.fail(`Error was thrown in ${title}: ${String(error)}`);
-	});
 
 	const connectEvent = pEvent(channel, 'connect');
 	const closeEvent = pEvent(channel, 'close');
 
-	socket.connect(connectionInfo);
+	channel.connect();
 	await connectEvent;
 	await client.send(setNamedControl('AllOff', true));
 

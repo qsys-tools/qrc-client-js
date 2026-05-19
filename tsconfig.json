@@ -12,7 +12,10 @@
 		"declaration": false,
 		"outDir": "./dist",
 		"noUnusedLocals": true,
-		"noUnusedParameters": true
+		"noUnusedParameters": true,
+		"lib": [
+			"ESNext", "DOM"
+		],
 	},
 	"include": [
 		"integration-tests/**/*.ts",
