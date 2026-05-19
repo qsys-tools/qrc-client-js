@@ -1,7 +1,7 @@
 import {type Transform} from 'node:stream';
 import {objectTransform} from 'through2';
 import split from 'split2';
-import {inspect} from './utils.ts';
+import {inspect} from '../lib/utils.ts';
 
 const NULL_CHAR = '\u0000';
 

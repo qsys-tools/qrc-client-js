@@ -6,7 +6,7 @@ import type {CommunicationChannel} from '../communication-channel.ts';
 import type {JsonRpcMessage} from '../json-rpc.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
-} from '../lib/stream-transforms.ts';
+} from './stream-transforms.ts';
 
 // eslint-disable-next-line unicorn/prefer-event-target
 export class SocketChannel extends EventEmitter implements CommunicationChannel {
