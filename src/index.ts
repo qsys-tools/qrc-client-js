@@ -12,8 +12,6 @@ export {
 export type {
 	InferResponseResult,
 	InferCommandParams,
-	MethodWithParams,
-	MethodWithoutParams,
 	CommandMethod,
 	Validator,
 	ParseOptions,

@@ -2,7 +2,7 @@ import type {ZodError} from 'zod';
 import {captureStackTrace} from '../lib/utils.ts';
 import type {CommandMethod} from './parse-request.ts';
 
-export type ParseFailureOption = 'throw' | 'log' | 'logAndThrow' | 'ignore' | ((error: ZodError, method: CommandMethod, parametersOrResult: unknown) => unknown);
+export type ParseFailureOption = 'throw' | 'log' | 'logAndThrow' | 'ignore' | (<T>(error: ZodError, method: CommandMethod, parametersOrResult: T) => T);
 export type ParseLevel = 'strict' | 'loose';
 
 export type ValidationFailureOptions = ParseFailureOption | {
@@ -39,7 +39,7 @@ export const getParseLevel = (options: ParseOptions | undefined, direction: Pars
 export const getFailureOption = (options: ParseOptions | undefined, direction: ParseDirection) =>
 	(options && (typeof options.onParseFailure === 'object' ? options.onParseFailure[direction] : options.onParseFailure)) ?? defaultOptions.onParseFailure[direction];
 
-export const handleError = (options: ParseOptions | undefined, direction: ParseDirection, error: ZodError, method: CommandMethod, parametersOrResult: unknown) => {
+export const handleError = <T>(options: ParseOptions | undefined, direction: ParseDirection, error: ZodError, method: CommandMethod, parametersOrResult: unknown): T => {
 	const failureOption = getFailureOption(options, direction);
 	switch (failureOption) {
 		case 'throw': {
@@ -56,16 +56,19 @@ export const handleError = (options: ParseOptions | undefined, direction: ParseD
 		case 'log': {
 			captureStackTrace(error);
 			console.warn(error);
-			break;
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+			return parametersOrResult as T;
 		}
 
 		case 'ignore': {
-			return parametersOrResult;
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+			return parametersOrResult as T;
 		}
 
 		default: {
 			captureStackTrace(error);
-			return failureOption(error, method, parametersOrResult);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+			return failureOption(error, method, parametersOrResult) as T;
 		}
 		// No default
 	}

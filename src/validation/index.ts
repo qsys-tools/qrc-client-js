@@ -8,11 +8,7 @@ export type {
 export {
 	type CommandMethod,
 	type InferCommandParams,
-	type MethodWithoutParams,
-	type MethodWithParams,
 	createCommand,
-	methodHasParams,
-	methodHasNoParams,
 	parseCommandParameters,
 	safeParseCommandParameters,
 } from './parse-request.ts';

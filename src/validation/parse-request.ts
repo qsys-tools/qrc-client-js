@@ -1,21 +1,12 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import type z from 'zod';
-import {noParameterMethods, requestValidators, strictRequestValidators} from './request-validators.ts';
+import {requestValidators, strictRequestValidators} from './request-validators.ts';
 import {getParseLevel, handleError, type ParseOptions} from './validation-options.ts';
 
-declare const emptyObjectSymbol: unique symbol;
-export type EmptyObject = {[emptyObjectSymbol]?: never};
-
-export type MethodWithoutParams = typeof noParameterMethods[number];
-export type MethodWithParams = keyof typeof requestValidators;
-export type CommandMethod = MethodWithoutParams | MethodWithParams;
+export type CommandMethod = keyof typeof requestValidators;
 
 export type InferCommandParams<M extends CommandMethod>
-	= M extends MethodWithoutParams
-		? EmptyObject
-		: M extends MethodWithParams
-			? z.output<typeof requestValidators[M]>
-			: never;
+	= z.output<typeof requestValidators[M]>;
 
 export type QRCCommand<M extends CommandMethod> = {
 	jsonrpc: '2.0';
@@ -23,41 +14,19 @@ export type QRCCommand<M extends CommandMethod> = {
 	params: InferCommandParams<M>;
 };
 
-export const methodHasParams = (method: CommandMethod): method is MethodWithParams =>
-	method in requestValidators;
-
-export const methodHasNoParams = (m: CommandMethod): m is MethodWithoutParams =>
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/no-unsafe-argument
-	noParameterMethods.includes(m as any);
-
 export function safeParseCommandParameters<M extends CommandMethod>(method: M, params: unknown, parseOptions?: ParseOptions): z.ZodSafeParseResult<InferCommandParams<M>> {
 	const parseLevel = getParseLevel(parseOptions, 'commands');
-	if (methodHasParams(method)) {
-		// @ts-expect-error types are hard
-		return (parseLevel === 'strict' ? strictRequestValidators : requestValidators)[method].safeParse(params);
-	}
-
-	if (methodHasNoParams(method)) {
-		return {
-			success: true,
-			// @ts-expect-error types are hard
-			data: {},
-		};
-	}
-
-	throw new TypeError(`Unknown command ${method}`);
+	// @ts-expect-error Types Are Hard
+	return (parseLevel === 'strict' ? strictRequestValidators : requestValidators)[method].safeParse(params);
 }
 
-export function parseCommandParameters<M extends MethodWithParams, O extends InferCommandParams<M>>(method: M, params: O, parseOptions?: ParseOptions): InferCommandParams<M>;
-export function parseCommandParameters<M extends MethodWithoutParams>(method: M, params?: unknown, parseOptions?: ParseOptions): InferCommandParams<M>;
-export function parseCommandParameters<M extends CommandMethod, O extends InferCommandParams<M>>(method: M, params?: O, parseOptions?: ParseOptions): InferCommandParams<M> {
+export function parseCommandParameters<M extends CommandMethod>(method: M, params: unknown, parseOptions?: ParseOptions): InferCommandParams<M> {
 	const validationResult = safeParseCommandParameters(method, params, parseOptions);
 	if (validationResult.success) {
 		return validationResult.data;
 	}
 
-	// @ts-expect-error types are hard
-	return handleError(parseOptions, 'commands', validationResult.error, method, params);
+	return handleError<InferCommandParams<M>>(parseOptions, 'commands', validationResult.error, method, params);
 }
 
 function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>): QRCCommand<M> {
@@ -69,6 +38,5 @@ function wrap<M extends CommandMethod>(method: M, params: InferCommandParams<M>)
 }
 
 export function createCommand<M extends CommandMethod>(method: M, params?: unknown, parseOptions?: ParseOptions): QRCCommand<M> {
-	// @ts-expect-error Don't understand why the typeguard isn't sufficient here
 	return wrap(method, parseCommandParameters(method, params, parseOptions));
 }

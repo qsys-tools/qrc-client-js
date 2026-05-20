@@ -6,7 +6,7 @@ test('should create commands that do not require params', t => {
 	t.deepEqual(createCommand('NoOp'), {
 		jsonrpc: '2.0',
 		method: 'NoOp',
-		params: {},
+		params: undefined,
 	});
 });
 

@@ -32,6 +32,5 @@ export const parseResponseResult = <M extends CommandMethod>(method: M, result: 
 		return validationResult.data;
 	}
 
-	// @ts-expect-error types are hard
 	return handleError(options, 'results', validationResult.error, method, result);
 };

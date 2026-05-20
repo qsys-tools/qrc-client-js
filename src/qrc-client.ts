@@ -11,8 +11,6 @@ import {
 	noopValidator,
 	type Validator,
 	type CommandMethod,
-	type MethodWithoutParams,
-	type MethodWithParams,
 	type InferCommandParams,
 	type InferResponseResult,
 } from './validation/index.ts';
@@ -22,11 +20,9 @@ import {promiseWithResolvers, type PromiseWithResolvers} from './lib/utils.ts';
 
 type SendArgs<M extends CommandMethod>
 	= [PartialQrcCommand<M>]
-		| (M extends MethodWithoutParams
-			? [M]
-			: M extends MethodWithParams
-				? [M, InferCommandParams<M>]
-				: never
+		| (undefined extends InferCommandParams<M>
+			? [M] | [M, undefined]
+			: [M, InferCommandParams<M>]
 	);
 
 export type QrcClientOptions = {
@@ -54,9 +50,8 @@ export default class QrcClient {
 		this.requestHandlers.on('ChangeGroup.Poll', this.handleChangeGroupPoll);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/unified-signatures
-	async send<M extends MethodWithParams>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
-	async send<M extends MethodWithoutParams>(method: M): Promise<InferResponseResult<M>>;
+	async send<M extends CommandMethod>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
+	async send<M extends CommandMethod>(method: undefined extends InferCommandParams<M> ? M : never): Promise<InferResponseResult<M>>;
 	async send<M extends CommandMethod>(command: PartialQrcCommand<M>): Promise<InferResponseResult<M>>;
 	async send<M extends CommandMethod>(...args: SendArgs<M>) {
 		const method = typeof args[0] === 'string' ? args[0] : args[0].method;

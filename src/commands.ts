@@ -2,15 +2,13 @@ import type {
 	ComponentControlSetSpec, ControlSetSpec,
 } from './types.ts';
 import type {
-	CommandMethod, InferCommandParams, MethodWithoutParams, MethodWithParams,
+	CommandMethod, InferCommandParams,
 } from './validation/index.ts';
 
 export type PartialQrcCommand<M extends CommandMethod>
-	= M extends MethodWithoutParams
-		? {method: M}
-		: M extends MethodWithParams
-			? {method: M; params: InferCommandParams<M>}
-			: never;
+	= undefined extends InferCommandParams<M>
+		? {method: M; params?: InferCommandParams<M>}
+		: {method: M; params: InferCommandParams<M>};
 
 export const getStatus = () => ({
 	method: 'StatusGet',

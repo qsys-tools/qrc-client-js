@@ -1,9 +1,11 @@
 import z from 'zod';
 import type {$ZodLooseShape} from 'zod/v4/core';
 
-export const noParameterMethods = ['NoOp', 'StatusGet', 'Component.GetComponents'] as const;
-
 const makeValidators = (strictObjects: boolean) => {
+	const conditionalObject = strictObjects ? z.strictObject : z.object;
+
+	const noParameters = z.union([z.undefined(), conditionalObject({})]).optional();
+
 	const withId = <T extends $ZodLooseShape>(object: T) => conditionalObject({
 		Id: z.string(),
 		...object,
@@ -19,8 +21,6 @@ const makeValidators = (strictObjects: boolean) => {
 		RefId: z.string().optional(),
 		...object,
 	});
-
-	const conditionalObject = strictObjects ? z.strictObject : z.object;
 
 	const setControlValueSchema = z.union([
 		withName({
@@ -57,6 +57,9 @@ const makeValidators = (strictObjects: boolean) => {
 	});
 
 	return {
+		'NoOp': noParameters,
+		'StatusGet': noParameters,
+		'Component.GetComponents': noParameters,
 		'Logon': conditionalObject({
 			User: z.string(),
 			Password: z.string(),

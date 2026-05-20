@@ -59,7 +59,8 @@
 		"uuid": "^14.0.0",
 		"ws": "^8.20.1",
 		"xo": "^2.0.2",
-		"zen-observable": "^0.10.0"
+		"zen-observable": "^0.10.0",
+		"zod-to-ts": "^2.0.0"
 	},
 	"peerDependencies": {
 		"zod": "^4.4.3"
