@@ -87,6 +87,8 @@ const makeValidators = (strictObjects: boolean) => {
 		'LoopPlayer.Start': z.undefined(),
 		'LoopPlayer.Cancel': z.undefined(),
 		'LoopPlayer.Stop': z.undefined(),
+		'Snapshot.Load': z.literal(true),
+		'Snapshot.Save': z.literal(true),
 	} satisfies Partial<Record<CommandMethod, z.ZodType>>;
 };
 
