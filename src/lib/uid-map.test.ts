@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable unicorn/no-array-method-this-argument */
 import test from 'ava';
 import UidMap from './uid-map.ts';

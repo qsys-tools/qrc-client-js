@@ -84,6 +84,9 @@ const makeValidators = (strictObjects: boolean) => {
 			Id: z.string(),
 			Changes: z.array(z.union([controlStatus, componentControlStatus])),
 		}),
+		'LoopPlayer.Start': z.undefined(),
+		'LoopPlayer.Cancel': z.undefined(),
+		'LoopPlayer.Stop': z.undefined(),
 	} satisfies Partial<Record<CommandMethod, z.ZodType>>;
 };
 

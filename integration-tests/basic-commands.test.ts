@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-confusing-void-expression */
 import {Socket} from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -313,4 +313,40 @@ test('pollGroups', withEmulator, async (t: ExecutionContext, client: QrcClient) 
 			},
 		],
 	]);
+});
+
+test('LoopPlayer.start', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+	t.is(await client.send('LoopPlayer.Start', {
+		Name: 'Loop_Player',
+		Files: [{
+			Name: '/media/foo.mp3',
+			Output: 1,
+		}],
+	}), undefined);
+});
+
+test('LoopPlayer.Start', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+	t.is(await client.send('LoopPlayer.Start', {
+		Name: 'Loop_Player',
+		Files: [{
+			Name: '/media/foo.mp3',
+			Output: 1,
+		}],
+	}), undefined);
+});
+
+test.failing('LoopPlayer.Stop', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+	await client.send('LoopPlayer.Stop', {
+		Name: 'Loop_Player',
+		Outputs: [1],
+	});
+	t.pass('If this passes, it means the emulator is better handling loop players. Update the test');
+});
+
+test.failing('LoopPlayer.Cance', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+	await client.send('LoopPlayer.Cancel', {
+		Name: 'Loop_Player',
+		Outputs: [1],
+	});
+	t.pass('If this passes, it means the emulator is better handling loop players. Update the test');
 });

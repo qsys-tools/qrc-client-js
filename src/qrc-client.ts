@@ -34,13 +34,15 @@ export type QrcClientOptions = {
 	validator?: Validator;
 };
 
+type ResolversWithMethod = PromiseWithResolvers<any> & {method: CommandMethod};
+
 export default class QrcClient {
 	readonly validator: Validator;
 
 	readonly channel: CommunicationChannel & EventEmitter;
 	readonly channelUnsub: () => void;
 
-	private readonly _map = new UidMap<PromiseWithResolvers<any> & {method: CommandMethod}>();
+	private readonly _map = new UidMap<ResolversWithMethod>();
 	private readonly pollGroups = new Map<string, QrcPollGroup>();
 
 	private readonly requestHandlers = new EventEmitter();
@@ -92,7 +94,7 @@ export default class QrcClient {
 	}
 
 	private readonly _data = (message: JsonRpcMessage) => {
-		if ('result' in message || 'error' in message) {
+		if ('result' in message || 'error' in message || ('id' in message && this._map.looseHas(message.id))) {
 			if (typeof message.id !== 'string') {
 				console.warn(`Received a non-string Id: ${message.id}... Which doesn't make sense. `);
 				return;
@@ -110,7 +112,8 @@ export default class QrcClient {
 			}
 
 			try {
-				resolvers.resolve(this.validator.parseResponseResult(resolvers.method, message.result));
+				const result: unknown = 'result' in message ? message.result : undefined;
+				resolvers.resolve(this.validator.parseResponseResult(resolvers.method, result));
 			} catch (error) {
 				resolvers.reject(error);
 			}

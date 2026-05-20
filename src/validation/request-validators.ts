@@ -14,6 +14,12 @@ const makeValidators = (strictObjects: boolean) => {
 		...object,
 	});
 
+	const loopCommand = <T extends $ZodLooseShape>(object: T) => withName({
+		Log: z.boolean().optional(),
+		RefId: z.string().optional(),
+		...object,
+	});
+
 	const conditionalObject = strictObjects ? z.strictObject : z.object;
 
 	const setControlValueSchema = z.union([
@@ -121,6 +127,20 @@ const makeValidators = (strictObjects: boolean) => {
 			Cues: crossPointSpec,
 			Inputs: crossPointSpec,
 			Value: z.boolean(),
+		}),
+		'LoopPlayer.Start': loopCommand({
+			StartTime: z.number().optional(),
+			Files: withName({
+				Output: z.number(),
+			}).array(),
+			Loop: z.boolean().optional(),
+			Seek: z.number().optional(),
+		}),
+		'LoopPlayer.Stop': loopCommand({
+			Outputs: z.number().array(),
+		}),
+		'LoopPlayer.Cancel': loopCommand({
+			Outputs: z.number().array(),
 		}),
 	} satisfies Record<string, z.ZodType>;
 };

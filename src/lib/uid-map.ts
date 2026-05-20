@@ -11,6 +11,15 @@ class UidMap<T> {
 		return id;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-restricted-types
+	looseHas(id: string | number | null | undefined): id is string {
+		if (typeof id !== 'string') {
+			return false;
+		}
+
+		return this._map.has(id);
+	}
+
 	has(id: string): boolean {
 		return this._map.has(id);
 	}
