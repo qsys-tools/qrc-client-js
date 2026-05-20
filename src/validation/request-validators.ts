@@ -131,16 +131,23 @@ const makeValidators = (strictObjects: boolean) => {
 		'LoopPlayer.Start': loopCommand({
 			StartTime: z.number().optional(),
 			Files: withName({
-				Output: z.number(),
+				Output: z.int().gte(1),
 			}).array(),
 			Loop: z.boolean().optional(),
 			Seek: z.number().optional(),
 		}),
 		'LoopPlayer.Stop': loopCommand({
-			Outputs: z.number().array(),
+			Outputs: z.int().gte(1).array(),
 		}),
 		'LoopPlayer.Cancel': loopCommand({
-			Outputs: z.number().array(),
+			Outputs: z.number().gte(1).array(),
+		}),
+		'Snapshot.Load': withName({
+			Bank: z.int().gte(1),
+			Ramp: z.number().gte(0).optional(),
+		}),
+		'Snapshot.Save': withName({
+			Bank: z.int().gte(1),
 		}),
 	} satisfies Record<string, z.ZodType>;
 };

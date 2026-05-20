@@ -335,7 +335,7 @@ test('LoopPlayer.Start', withEmulator, async (t: ExecutionContext, client: QrcCl
 	}), undefined);
 });
 
-test.failing('LoopPlayer.Stop', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+test.failing('LoopPlayer.Stop', withEmulator, async (t, client) => {
 	await client.send('LoopPlayer.Stop', {
 		Name: 'Loop_Player',
 		Outputs: [1],
@@ -343,10 +343,24 @@ test.failing('LoopPlayer.Stop', withEmulator, async (t: ExecutionContext, client
 	t.pass('If this passes, it means the emulator is better handling loop players. Update the test');
 });
 
-test.failing('LoopPlayer.Cance', withEmulator, async (t: ExecutionContext, client: QrcClient) => {
+test.failing('LoopPlayer.Cancel', withEmulator, async (t, client) => {
 	await client.send('LoopPlayer.Cancel', {
 		Name: 'Loop_Player',
 		Outputs: [1],
 	});
 	t.pass('If this passes, it means the emulator is better handling loop players. Update the test');
+});
+
+test('Snapshot.Load', withEmulator, async (t, client) => {
+	t.true(await client.send('Snapshot.Load', {
+		Name: 'Snapshot Bank 1',
+		Bank: 2,
+	}));
+});
+
+test('Snapshot.Save', withEmulator, async (t, client) => {
+	t.true(await client.send('Snapshot.Save', {
+		Name: 'Snapshot Bank 1',
+		Bank: 3,
+	}));
 });
