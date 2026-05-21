@@ -1,39 +1,58 @@
-import ts, {type PropertySignature, type TypeAliasDeclaration} from 'typescript';
+import ts from 'typescript';
+import z from 'zod';
 import {
-	createAuxiliaryTypeStore, createTypeAlias, zodToTs, printNode,
+	createAuxiliaryTypeStore, zodToTs, printNode,
 } from 'zod-to-ts';
+import {assertAtLeastOne} from '../lib/utils.ts';
 import {requestValidators} from './request-validators.ts';
+import {responseValidators} from './response-validators.ts';
 
 const auxiliaryTypeStore = createAuxiliaryTypeStore();
 
-const typeAliases: TypeAliasDeclaration[] = [];
-const requestParameterMapElements: PropertySignature[] = [];
+const qrcRequestDiscriminatedUnion = z.discriminatedUnion(
+	'method',
+	assertAtLeastOne(Object.entries(requestValidators)
+		.map(([key, value]) => z.object({
+			jsonrpc: z.literal('2.0'),
+			method: z.literal(key),
+			params: value,
+		}))),
+);
 
-for (const [key, validator] of Object.entries(requestValidators)) {
+const qrcRequestAlias = ts.factory.createTypeAliasDeclaration(
+	[ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+	'QRCRequest',
+	undefined,
+	zodToTs(qrcRequestDiscriminatedUnion, {auxiliaryTypeStore}).node,
+);
+
+const responseResultElements: ts.PropertySignature[] = [];
+
+for (const [key, validator] of Object.entries(responseValidators)) {
 	const {node} = zodToTs(validator, {auxiliaryTypeStore});
-	const name = key.replace('.', '_') + 'Params';
-	const alias = createTypeAlias(node, name);
-	typeAliases.push(alias);
-
-	requestParameterMapElements.push(ts.factory.createPropertySignature(
+	responseResultElements.push(ts.factory.createPropertySignature(
 		undefined,
 		ts.factory.createStringLiteral(key, true),
 		undefined,
-		ts.factory.createTypeReferenceNode(name),
+		node,
 	));
 }
 
-const requestParameterMap = ts.factory.createTypeAliasDeclaration(
+const responseResultMap = ts.factory.createTypeAliasDeclaration(
 	[ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-	'requestParameterMap',
+	'QrcResultMap',
 	undefined,
-	ts.factory.createTypeLiteralNode(requestParameterMapElements),
+	ts.factory.createTypeLiteralNode(responseResultElements),
 );
 
-const file = ts.factory.createSourceFile(
-	[...typeAliases, requestParameterMap],
-	ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
-	ts.NodeFlags.None,
-);
+console.log(`${printNode(qrcRequestAlias)}
 
-console.log(printNode(file));
+${printNode(responseResultMap)}
+
+export type QrcMethod = QRCRequest['method'];
+export type QrcParams = QRCRequest['params'];
+export type InferQrcRequest<M extends QrcMethod> = Extract<QRCRequest, { method: M }>;
+export type InferQrcParams<M extends QrcMethod> = InferQrcRequest<M>['params'];
+export type QrcRequestMap = {[M in QrcMethod]: InferQrcRequest<M>};
+export type QrcParamMap = {[M in QrcMethod]: InferQrcParams<M>};
+`);

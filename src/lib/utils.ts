@@ -34,3 +34,15 @@ export const promiseWithResolvers = <T>(): PromiseWithResolvers<T> => {
 	// @ts-expect-error Promise callback happens synchronous.
 	return {promise, resolve, reject};
 };
+
+export type AtLeastOne<T> = [T, ...T[]];
+
+export const hasAtLeastOne = <T>(array: T[]): array is AtLeastOne<T> => array.length > 0;
+
+export const assertAtLeastOne = <T>(array: T[]) => {
+	if (hasAtLeastOne(array)) {
+		return array;
+	}
+
+	throw new Error('Array should have at least one element.');
+};

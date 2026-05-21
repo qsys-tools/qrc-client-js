@@ -4,7 +4,7 @@ import type {$ZodLooseShape} from 'zod/v4/core';
 const makeValidators = (strictObjects: boolean) => {
 	const conditionalObject = strictObjects ? z.strictObject : z.object;
 
-	const noParameters = z.union([z.undefined(), conditionalObject({})]).optional();
+	const noParameters = conditionalObject({}).optional();
 
 	const withId = <T extends $ZodLooseShape>(object: T) => conditionalObject({
 		Id: z.string(),

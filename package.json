@@ -20,7 +20,8 @@
 		"lint": "xo",
 		"format": "xo --fix",
 		"test-only": "ava",
-		"test-noop": "ava -- --noop-validator"
+		"test-noop": "ava -- --noop-validator",
+		"generate-types": "node src/validation/_generate-types.ts > src/generated-types.ts"
 	},
 	"main": "dist/index.js",
 	"type": "module",
@@ -51,7 +52,6 @@
 		"ava": "^8.0.0",
 		"delay": "^7.0.0",
 		"eslint": "^10.3.0",
-		"eslint-config-xo": "^0.51.0",
 		"is-ci": "^4.1.0",
 		"make-dir": "^5.1.0",
 		"p-event": "^7.1.0",
@@ -70,6 +70,11 @@
 			"optional": true
 		}
 	},
+	"overrides": {
+		"zod-to-ts": {
+			"typescript": "$typescript"
+		}
+	},
 	"ava": {
 		"files": [
 			"src/*.test.ts",
@@ -86,13 +91,17 @@
 			"--experimental-strip-types"
 		]
 	},
-	"xo": {
-		"rules": {
-			"@typescript-eslint/naming-convention": "off",
-			"@stylistic/quote-props": [
-				"error",
-				"consistent-as-needed"
-			]
-		}
-	}
+	"xo": [
+		{
+			"files": ["**"],
+			"rules": {
+				"@typescript-eslint/naming-convention": "off",
+				"@stylistic/quote-props": [
+					"error",
+					"consistent-as-needed"
+				]
+			}
+		},
+		{"ignores": ["src/generated-types.ts"]}
+	]
 }

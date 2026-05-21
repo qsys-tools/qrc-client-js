@@ -9,9 +9,7 @@ const config = xo.xoToEslintConfig([
 			'@stylistic/indent-binary-ops': 'off',
 		},
 	},
-	{
-		rules: pkg.xo.rules,
-	},
+	...pkg.xo,
 ]);
 
 for (const cf of config) {
