@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import type {CommandMethod} from './parse-request.ts';
+import type {RequestValidatorKeys} from './request-validators.ts';
 
 const makeValidators = (strictObjects: boolean) => {
 	const conditionalObject = strictObjects ? z.strictObject : z.object;
@@ -89,7 +89,7 @@ const makeValidators = (strictObjects: boolean) => {
 		'LoopPlayer.Stop': z.undefined(),
 		'Snapshot.Load': z.literal(true),
 		'Snapshot.Save': z.literal(true),
-	} satisfies Partial<Record<CommandMethod, z.ZodType>>;
+	} satisfies Partial<Record<RequestValidatorKeys, z.ZodType>>;
 };
 
 export const responseValidators = makeValidators(false);

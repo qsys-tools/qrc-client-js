@@ -1,8 +1,11 @@
-import type {CommandMethod, QRCCommand} from './parse-request.ts';
-import type {InferResponseResult} from './parse-response.ts';
+import type {
+	QrcMethod,
+	InferQrcRequest,
+	InferResponseResult,
+} from './generated-types.ts';
 
 export type Validator = {
-	createCommand<M extends CommandMethod>(method: M, parameters: unknown): QRCCommand<M>;
+	createCommand<M extends QrcMethod>(method: M, parameters: unknown): InferQrcRequest<M>;
 
-	parseResponseResult<M extends CommandMethod>(method: M, result: unknown): InferResponseResult<M>;
+	parseResponseResult<M extends QrcMethod>(method: M, result: unknown): InferResponseResult<M>;
 };

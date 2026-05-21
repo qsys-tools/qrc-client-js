@@ -1,18 +1,17 @@
 import type {Validator} from './validator.ts';
-import type {CommandMethod, QRCCommand} from './parse-request.ts';
-import type {InferResponseResult} from './parse-response.ts';
+import type {QrcMethod, InferQrcRequest, InferResponseResult} from './generated-types.ts';
 
 export class NoopValidator implements Validator {
-	createCommand<M extends CommandMethod>(method: M, parameters: unknown): QRCCommand<M> {
+	createCommand<M extends QrcMethod>(method: M, parameters: unknown): InferQrcRequest<M> {
+		// @ts-expect-error Types are hard.
 		return {
 			jsonrpc: '2.0',
 			method,
-			// @ts-expect-error We know we aren't validating it.
 			params: parameters,
 		};
 	}
 
-	parseResponseResult<M extends CommandMethod>(_method: M, result: unknown): InferResponseResult<M> {
+	parseResponseResult<M extends QrcMethod>(_method: M, result: unknown): InferResponseResult<M> {
 		// @ts-expect-error We know we aren't validating it.
 		return result;
 	}

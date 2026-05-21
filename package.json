@@ -21,7 +21,7 @@
 		"format": "xo --fix",
 		"test-only": "ava",
 		"test-noop": "ava -- --noop-validator",
-		"generate-types": "node src/validation/_generate-types.ts > src/generated-types.ts"
+		"generate-types": "node src/validation/_generate-types.ts > src/validation/generated-types.ts"
 	},
 	"main": "dist/index.js",
 	"type": "module",
@@ -102,6 +102,6 @@
 				]
 			}
 		},
-		{"ignores": ["src/generated-types.ts"]}
+		{"ignores": ["src/validation/generated-types.ts"]}
 	]
 }

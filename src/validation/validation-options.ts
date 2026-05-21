@@ -1,8 +1,8 @@
 import type {ZodError} from 'zod';
 import {captureStackTrace} from '../lib/utils.ts';
-import type {CommandMethod} from './parse-request.ts';
+import type {QrcMethod} from './generated-types.ts';
 
-export type ParseFailureOption = 'throw' | 'log' | 'logAndThrow' | 'ignore' | (<T>(error: ZodError, method: CommandMethod, parametersOrResult: T) => T);
+export type ParseFailureOption = 'throw' | 'log' | 'logAndThrow' | 'ignore' | (<T>(error: ZodError, method: QrcMethod, parametersOrResult: T) => T);
 export type ParseLevel = 'strict' | 'loose';
 
 export type ValidationFailureOptions = ParseFailureOption | {
@@ -39,7 +39,7 @@ export const getParseLevel = (options: ParseOptions | undefined, direction: Pars
 export const getFailureOption = (options: ParseOptions | undefined, direction: ParseDirection) =>
 	(options && (typeof options.onParseFailure === 'object' ? options.onParseFailure[direction] : options.onParseFailure)) ?? defaultOptions.onParseFailure[direction];
 
-export const handleError = <T>(options: ParseOptions | undefined, direction: ParseDirection, error: ZodError, method: CommandMethod, parametersOrResult: unknown): T => {
+export const handleError = <T>(options: ParseOptions | undefined, direction: ParseDirection, error: ZodError, method: QrcMethod, parametersOrResult: unknown): T => {
 	const failureOption = getFailureOption(options, direction);
 	switch (failureOption) {
 		case 'throw': {

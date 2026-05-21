@@ -6,19 +6,25 @@ export type {
 } from './validation-options.ts';
 
 export {
-	type CommandMethod,
-	type InferCommandParams,
 	createCommand,
 	parseCommandParameters,
 	safeParseCommandParameters,
 } from './parse-request.ts';
 
 export {
-	type InferResponseResult,
 	parseResponseResult,
 	safeParseResponseResult,
 	haseResponseValidator,
 } from './parse-response.ts';
+
+export type {
+	QrcMethod,
+	InferQrcRequest,
+	InferResponseResult,
+	QrcResultMap,
+	InferQrcParams,
+	QrcRequestMap,
+} from './generated-types.ts';
 
 export type {
 	Validator,

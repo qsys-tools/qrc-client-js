@@ -155,5 +155,7 @@ const makeValidators = (strictObjects: boolean) => {
 	} satisfies Record<string, z.ZodType>;
 };
 
+export type RequestValidatorKeys = keyof ReturnType<typeof makeValidators>;
+
 export const requestValidators = makeValidators(false);
 export const strictRequestValidators = makeValidators(true);

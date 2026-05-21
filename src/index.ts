@@ -11,8 +11,8 @@ export {
 
 export type {
 	InferResponseResult,
-	InferCommandParams,
-	CommandMethod,
+	InferQrcParams,
+	QrcMethod,
 	Validator,
 	ParseOptions,
 	ParseLevel,

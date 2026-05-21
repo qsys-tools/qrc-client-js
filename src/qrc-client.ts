@@ -10,19 +10,19 @@ import QrcError from './lib/qrc-error.ts';
 import {
 	noopValidator,
 	type Validator,
-	type CommandMethod,
-	type InferCommandParams,
+	type QrcMethod,
+	type InferQrcParams,
 	type InferResponseResult,
 } from './validation/index.ts';
 import {QrcPollGroup} from './lib/poll-group.ts';
 import type {CommunicationChannel} from './socket-channel/communication-channel.ts';
 import {promiseWithResolvers, type PromiseWithResolvers} from './lib/utils.ts';
 
-type SendArgs<M extends CommandMethod>
+type SendArgs<M extends QrcMethod>
 	= [PartialQrcCommand<M>]
-		| (undefined extends InferCommandParams<M>
+		| (undefined extends InferQrcParams<M>
 			? [M] | [M, undefined]
-			: [M, InferCommandParams<M>]
+			: [M, InferQrcParams<M>]
 	);
 
 export type QrcClientOptions = {
@@ -30,7 +30,7 @@ export type QrcClientOptions = {
 	validator?: Validator;
 };
 
-type ResolversWithMethod = PromiseWithResolvers<any> & {method: CommandMethod};
+type ResolversWithMethod = PromiseWithResolvers<any> & {method: QrcMethod};
 
 export default class QrcClient {
 	readonly validator: Validator;
@@ -50,10 +50,10 @@ export default class QrcClient {
 		this.requestHandlers.on('ChangeGroup.Poll', this.handleChangeGroupPoll);
 	}
 
-	async send<M extends CommandMethod>(method: M, parameters: InferCommandParams<M>): Promise<InferResponseResult<M>>;
-	async send<M extends CommandMethod>(method: undefined extends InferCommandParams<M> ? M : never): Promise<InferResponseResult<M>>;
-	async send<M extends CommandMethod>(command: PartialQrcCommand<M>): Promise<InferResponseResult<M>>;
-	async send<M extends CommandMethod>(...args: SendArgs<M>) {
+	async send<M extends QrcMethod>(method: M, parameters: InferQrcParams<M>): Promise<InferResponseResult<M>>;
+	async send<M extends QrcMethod>(method: undefined extends InferQrcParams<M> ? M : never): Promise<InferResponseResult<M>>;
+	async send<M extends QrcMethod>(command: PartialQrcCommand<M>): Promise<InferResponseResult<M>>;
+	async send<M extends QrcMethod>(...args: SendArgs<M>) {
 		const method = typeof args[0] === 'string' ? args[0] : args[0].method;
 		// @ts-expect-error types are hard
 		const parameters: InferCommandParams<M> = typeof args[0] === 'string' ? args[1] : ('params' in args[0] ? args[0].params : undefined);

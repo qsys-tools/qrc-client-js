@@ -1,30 +1,13 @@
-export type QRCRequest = {
-    jsonrpc: "2.0";
-    method: "NoOp";
-    params?: {} | undefined;
-} | {
-    jsonrpc: "2.0";
-    method: "StatusGet";
-    params?: {} | undefined;
-} | {
-    jsonrpc: "2.0";
-    method: "Component.GetComponents";
-    params?: {} | undefined;
-} | {
-    jsonrpc: "2.0";
-    method: "Logon";
-    params: {
+export type QrcParamMap = {
+    'NoOp': {} | undefined;
+    'StatusGet': {} | undefined;
+    'Component.GetComponents': {} | undefined;
+    'Logon': {
         User: string;
         Password: string;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Control.Get";
-    params: string[];
-} | {
-    jsonrpc: "2.0";
-    method: "Control.Set";
-    params: {
+    'Control.Get': string[];
+    'Control.Set': {
         Name: string;
         Value: string | boolean | number;
         Ramp?: number | undefined;
@@ -33,25 +16,16 @@ export type QRCRequest = {
         Position: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Component.Get";
-    params: {
+    'Component.Get': {
         Name: string;
         Controls: {
             Name: string;
         }[];
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Component.GetControls";
-    params: {
+    'Component.GetControls': {
         Name: string;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Component.Set";
-    params: {
+    'Component.Set': {
         Name: string;
         Controls: ({
             Name: string;
@@ -64,17 +38,11 @@ export type QRCRequest = {
         })[];
         ResponseValues?: boolean | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.AddControl";
-    params: {
+    'ChangeGroup.AddControl': {
         Id: string;
         Controls: string[];
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.AddComponentControl";
-    params: {
+    'ChangeGroup.AddComponentControl': {
         Id: string;
         Component: {
             Name: string;
@@ -83,163 +51,103 @@ export type QRCRequest = {
             }[];
         };
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.Remove";
-    params: {
+    'ChangeGroup.Remove': {
         Id: string;
         Controls: string[];
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.Poll";
-    params: {
+    'ChangeGroup.Poll': {
         Id: string;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.Destroy";
-    params: {
+    'ChangeGroup.Destroy': {
         Id: string;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.Invalidate";
-    params: {
+    'ChangeGroup.Invalidate': {
         Id: string;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.Clear";
-    params: {
+    'ChangeGroup.Clear': {
         Id: string;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "ChangeGroup.AutoPoll";
-    params: {
+    'ChangeGroup.AutoPoll': {
         Id: string;
         Rate: number;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetCrossPointGain";
-    params: {
+    'Mixer.SetCrossPointGain': {
         Name: string;
         Inputs: string;
         Outputs: string;
         Value: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetCrossPointDelay";
-    params: {
+    'Mixer.SetCrossPointDelay': {
         Name: string;
         Inputs: string;
         Outputs: string;
         Value: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetCrossPointMute";
-    params: {
+    'Mixer.SetCrossPointMute': {
         Name: string;
         Inputs: string;
         Outputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetCrossPointSolo";
-    params: {
+    'Mixer.SetCrossPointSolo': {
         Name: string;
         Inputs: string;
         Outputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetInputGain";
-    params: {
+    'Mixer.SetInputGain': {
         Name: string;
         Inputs: string;
         Value: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetInputMute";
-    params: {
+    'Mixer.SetInputMute': {
         Name: string;
         Inputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetInputSolo";
-    params: {
+    'Mixer.SetInputSolo': {
         Name: string;
         Inputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetOutputGain";
-    params: {
+    'Mixer.SetOutputGain': {
         Name: string;
         Outputs: string;
         Value: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetOutputMute";
-    params: {
+    'Mixer.SetOutputMute': {
         Name: string;
         Outputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetCueMute";
-    params: {
+    'Mixer.SetCueMute': {
         Name: string;
         Cues: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetCueGain";
-    params: {
+    'Mixer.SetCueGain': {
         Name: string;
         Cues: string;
         Value: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetInputCueEnable";
-    params: {
+    'Mixer.SetInputCueEnable': {
         Name: string;
         Cues: string;
         Inputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Mixer.SetInputCueAfl";
-    params: {
+    'Mixer.SetInputCueAfl': {
         Name: string;
         Cues: string;
         Inputs: string;
         Value: boolean;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "LoopPlayer.Start";
-    params: {
+    'LoopPlayer.Start': {
         Name: string;
         Log?: boolean | undefined;
         RefId?: string | undefined;
@@ -251,36 +159,24 @@ export type QRCRequest = {
         Loop?: boolean | undefined;
         Seek?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "LoopPlayer.Stop";
-    params: {
+    'LoopPlayer.Stop': {
         Name: string;
         Log?: boolean | undefined;
         RefId?: string | undefined;
         Outputs: number[];
     };
-} | {
-    jsonrpc: "2.0";
-    method: "LoopPlayer.Cancel";
-    params: {
+    'LoopPlayer.Cancel': {
         Name: string;
         Log?: boolean | undefined;
         RefId?: string | undefined;
         Outputs: number[];
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Snapshot.Load";
-    params: {
+    'Snapshot.Load': {
         Name: string;
         Bank: number;
         Ramp?: number | undefined;
     };
-} | {
-    jsonrpc: "2.0";
-    method: "Snapshot.Save";
-    params: {
+    'Snapshot.Save': {
         Name: string;
         Bank: number;
     };
@@ -384,10 +280,15 @@ export type QrcResultMap = {
     'Snapshot.Save': true;
 };
 
-export type QrcMethod = QRCRequest['method'];
-export type QrcParams = QRCRequest['params'];
-export type InferQrcRequest<M extends QrcMethod> = Extract<QRCRequest, { method: M }>;
-export type InferQrcParams<M extends QrcMethod> = InferQrcRequest<M>['params'];
+export type QrcMethod = keyof QrcParamMap;
+export type InferQrcParams<M extends QrcMethod> = QrcParamMap[M];
+export type InferQrcRequest<M extends QrcMethod> = {
+	jsonrpc: '2.0',
+	method: M,
+	params: InferQrcParams<M>
+} | (undefined extends InferQrcParams<M>
+	? { jsonrpc: '2.0', method: M }
+	: never);
 export type QrcRequestMap = {[M in QrcMethod]: InferQrcRequest<M>};
-export type QrcParamMap = {[M in QrcMethod]: InferQrcParams<M>};
+export type InferResponseResult<M extends QrcMethod> = M extends keyof QrcResultMap ? QrcResultMap[M] : unknown;
 

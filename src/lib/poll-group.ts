@@ -1,6 +1,6 @@
 import AnyObservable from 'any-observable/optional';
 import type QrcClient from '../qrc-client.ts';
-import type {CommandMethod, InferCommandParams, InferResponseResult} from '../validation/index.ts';
+import type {QrcMethod, InferQrcParams, InferResponseResult} from '../validation/index.ts';
 import type {AutoPollUpdate} from '../types.ts';
 import type {
 	ObservableConstructor, SubscriptionObserver,
@@ -10,7 +10,7 @@ import type {
 const Observable = AnyObservable as ObservableConstructor;
 const BaseClass = (Observable ?? Object);
 
-type ChangeGroupCommand = Extract<CommandMethod, `ChangeGroup.${string}`>;
+type ChangeGroupCommand = Extract<QrcMethod, `ChangeGroup.${string}`>;
 
 const warnObservable = () => {
 	throw new Error('No observable implementation found. Please add one via `npm install zen-observable`, or install any implementation. See the `any-observable` package on npm for more details');
@@ -94,8 +94,9 @@ export class QrcPollGroup extends BaseClass<AutoPollUpdate> {
 		}
 	}
 
-	private async send<M extends ChangeGroupCommand>(method: M, parameters: Omit<InferCommandParams<M>, 'Id'>): Promise<InferResponseResult<M>> {
+	private async send<M extends ChangeGroupCommand>(method: M, parameters: Omit<InferQrcParams<M>, 'Id'>): Promise<InferResponseResult<M>> {
 		// @ts-expect-error TypeScript cannot detect that Omit<type, 'Id'> & {Id: string} is the same as the full type.
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return this.client.send<M>(method, {...parameters, Id: this.id} satisfies InferCommandParams<M>);
 	}
 }
