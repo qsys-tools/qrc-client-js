@@ -1,5 +1,8 @@
 packages:
-    - 'packages/*'
+  - 'packages/*'
+
+allowBuilds:
+  unrs-resolver: false
 
 catalogMode: strict
 
