@@ -3,7 +3,11 @@
 	"references": [
 		{
 			"path": "packages/qrc-client-js/tsconfig.json"
-		}
+		},
+		{
+			"path": "packages/qrc-client-js/tsconfig.json"
+		},
 	],
 	"include": [],
+	"files": []
 }

@@ -31,3 +31,10 @@ export type JsonRpcErrorResponse = JsonRpcBaseResponse & {
 export type JsonRpcResponse<T = any> = JsonRpcSuccessResponse<T> | JsonRpcErrorResponse;
 
 export type JsonRpcMessage = JsonRpcRequest | JsonRpcResponse;
+
+export type CommunicationChannel = {
+	send: (message: JsonRpcMessage) => void;
+	subscribe: (callback: (message: JsonRpcMessage) => void) => () => void;
+	end: () => void;
+	connect: () => void;
+};

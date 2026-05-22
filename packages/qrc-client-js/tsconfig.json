@@ -2,6 +2,15 @@
 	"extends": "../../tsconfig.options.json",
 	"compilerOptions": {
 		"rootDir": ".",
-		"outDir": "./dist"
-	}
+		"outDir": "./dist",
+		"paths": {
+			"@qsys-tools/json-rpc-channel": ["../json-rpc-channel/src/index.ts"]
+		}
+	},
+	"include": ["src/**/*.ts", "integration-tests/**/*.ts", "@types/*.ts"],
+	"references": [
+		{
+			"path": "../json-rpc-channel/tsconfig.json"
+		}
+	]
 }

@@ -1,4 +1,4 @@
-import {type JsonRpcError} from '../json-rpc.ts';
+import {type JsonRpcError} from '@qsys-tools/json-rpc-channel';
 
 export const ErrorCodes = {
 	[-32_700]: 'Parse error.', // Invalid JSON was received by the server.

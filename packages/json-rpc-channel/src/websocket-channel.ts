@@ -1,5 +1,5 @@
 import type {WebSocket as WsWebSocket} from 'ws';
-import type {JsonRpcMessage} from '../json-rpc.ts';
+import type {JsonRpcMessage} from './types.ts';
 import {AbstractChannel} from './abstract-channel.ts';
 
 export type IWebSocketEventMap = {

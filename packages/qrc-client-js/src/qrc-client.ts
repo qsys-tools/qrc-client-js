@@ -1,9 +1,10 @@
 /* eslint-disable unicorn/prefer-event-target */
 import EventEmitter from 'node:events';
 import type {
+	CommunicationChannel,
 	JsonRpcMessage,
 	JsonRpcRequest,
-} from './json-rpc.ts';
+} from '@qsys-tools/json-rpc-channel';
 import {type PartialQrcCommand} from './commands.ts';
 import UidMap from './lib/uid-map.ts';
 import QrcError from './lib/qrc-error.ts';
@@ -15,7 +16,6 @@ import {
 	type InferResponseResult,
 } from './validation/index.ts';
 import {QrcPollGroup} from './lib/poll-group.ts';
-import type {CommunicationChannel} from './socket-channel/communication-channel.ts';
 import {promiseWithResolvers, type PromiseWithResolvers} from './lib/utils.ts';
 
 type SendArgs<M extends QrcMethod>

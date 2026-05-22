@@ -1,11 +1,15 @@
+import {inspect as insp} from 'node:util';
 import {type Transform} from 'node:stream';
 import {objectTransform} from 'through2';
+import supportsColor from 'supports-color';
 import split from 'split2';
-import {inspect} from '../lib/utils.ts';
 
 const NULL_CHAR = '\u0000';
 
 const DEBUG = false;
+
+const colors = Boolean(supportsColor.stdout ?? supportsColor.stderr);
+const inspect = (object: any): string => insp(object, {colors, depth: Infinity});
 
 // Converts a "Null Terminated JSON" byte stream into an object stream.
 export const nullJsonDecoder = (): Transform => split(NULL_CHAR, JSON.parse);

@@ -22,7 +22,7 @@
 		// "exactOptionalPropertyTypes": true,
 		"lib": [
 			"ESNext", "DOM"
-		],
+		]
 
 		// "jsx": "react-jsx",
 		// "verbatimModuleSyntax": true,
@@ -30,9 +30,6 @@
 		// "noUncheckedSideEffectImports": true,
 		// "moduleDetection": "force",
 	},
-	"include": [
-		"**/integration-tests/**/*.ts",
-		"**/src/**/*.ts",
-		"**/@types/*.ts"
-	]
+	"include": [],
+	"files": []
 }

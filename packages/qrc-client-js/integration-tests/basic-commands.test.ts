@@ -10,6 +10,7 @@ import isCI from 'is-ci';
 import {pEvent} from 'p-event';
 import {WebSocket} from 'ws';
 import {v4 as uuidV4} from 'uuid';
+import {SocketChannel, WebsocketChannel, type CommunicationChannel} from '@qsys-tools/json-rpc-channel';
 import QrcClient, {ZodValidator} from '../src/index.ts';
 import {
 	setNamedControl,
@@ -22,9 +23,6 @@ import {
 	destroyGroup,
 	removeNamedControlsFromGroup,
 } from '../src/commands.ts';
-import {SocketChannel} from '../src/socket-channel/socket-channel.ts';
-import {WebsocketChannel} from '../src/socket-channel/websocket-channel.ts';
-import type {CommunicationChannel} from '../src/socket-channel/communication-channel.ts';
 
 // @ts-expect-error Just making `.only` work for local testing
 const test: SerialFn = isCI ? ava.serial.skip : ava.serial;

@@ -1,6 +1,5 @@
 import EventEmitter from 'node:events';
-import type {JsonRpcMessage} from '../json-rpc.ts';
-import type {CommunicationChannel} from './communication-channel.ts';
+import type {JsonRpcMessage, CommunicationChannel} from './types.ts';
 
 // eslint-disable-next-line unicorn/prefer-event-target
 export abstract class AbstractChannel extends EventEmitter implements CommunicationChannel {

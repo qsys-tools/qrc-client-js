@@ -1,7 +1,7 @@
 {
-	"name": "qsys-qrc-client",
+	"name": "@qsys-tools/json-rpc-channel",
 	"version": "0.4.0",
-	"description": "An external control client for QSC Q-SYS cores, written in Node.js.",
+	"description": "JSON RPC over tcp streams or websockets.",
 	"license": "MIT",
 	"repository": "qsys-tools/qrc-client-js",
 	"author": {
@@ -14,6 +14,7 @@
 	},
 	"scripts": {
 		"build": "tsc -b",
+		"prepare": "npm run build",
 		"prepublishOnly": "npm test && npm run test-noop",
 		"test": "xo && tsc -b && ava",
 		"lint": "xo",
@@ -34,49 +35,26 @@
 		"client"
 	],
 	"dependencies": {
-		"any-observable": "catalog:",
+		"pump": "catalog:",
+		"split2": "catalog:",
 		"supports-color": "catalog:",
 		"through2": "catalog:",
-		"uuid": "catalog:",
-		"ws": "catalog:",
-		"@qsys-tools/json-rpc-channel": "workspace:*"
+		"ws": "catalog:"
 	},
 	"devDependencies": {
-		"@types/is-ci": "catalog:",
 		"@types/node": "catalog:",
 		"@types/pump": "catalog:",
 		"@types/readable-stream": "catalog:",
 		"@types/split2": "catalog:",
 		"@types/ws": "catalog:",
-		"@types/zen-observable": "catalog:",
 		"ava": "catalog:",
-		"delay": "catalog:",
 		"eslint": "catalog:",
-		"is-ci": "catalog:",
 		"make-dir": "catalog:",
 		"p-event": "catalog:",
 		"typescript": "catalog:",
-		"xo": "catalog:",
-		"zen-observable": "catalog:",
-		"zod-to-ts": "catalog:"
-	},
-	"peerDependencies": {
-		"zod": "^4.4.3"
-	},
-	"peerDependenciesMeta": {
-		"zod": {
-			"optional": true
-		}
+		"xo": "catalog:"
 	},
 	"ava": {
-		"files": [
-			"src/*.test.ts",
-			"src/**/*.test.ts",
-			"integration-tests/*.test.ts"
-		],
-		"require": [
-			"any-observable/register/zen"
-		],
 		"extensions": [
 			"ts"
 		],
@@ -90,17 +68,8 @@
 				"**"
 			],
 			"rules": {
-				"@typescript-eslint/naming-convention": "off",
-				"@stylistic/quote-props": [
-					"error",
-					"consistent-as-needed"
-				]
+				"@typescript-eslint/naming-convention": "off"
 			}
-		},
-		{
-			"ignores": [
-				"**/src/validation/generated-types.ts"
-			]
 		}
 	]
 }

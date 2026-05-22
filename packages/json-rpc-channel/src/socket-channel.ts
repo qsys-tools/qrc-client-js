@@ -1,7 +1,7 @@
 import type {Socket} from 'node:net';
 import type {Readable, Writable} from 'node:stream';
 import pump from 'pump';
-import type {JsonRpcMessage} from '../json-rpc.ts';
+import type {JsonRpcMessage} from './types.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
 } from './stream-transforms.ts';

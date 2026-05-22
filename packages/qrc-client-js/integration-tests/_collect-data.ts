@@ -4,11 +4,11 @@ import {Socket} from 'node:net';
 import path from 'node:path';
 import {pEvent} from 'p-event';
 import {makeDirectorySync} from 'make-dir';
+import {SocketChannel} from '@qsys-tools/json-rpc-channel';
 import QrcClient from '../src/qrc-client.ts';
 import {
 	getComponents,
 } from '../src/commands.ts';
-import {SocketChannel} from '../src/socket-channel/socket-channel.ts';
 
 let connectionJSON;
 
