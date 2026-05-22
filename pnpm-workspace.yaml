@@ -7,3 +7,6 @@ allowBuilds:
 catalogMode: strict
 
 cleanupUnusedCatalogs: true
+
+overrides:
+    "typescript": "$typescript"

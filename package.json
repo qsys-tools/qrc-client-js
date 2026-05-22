@@ -13,10 +13,10 @@
 	"engines": {
 		"node": ">=22.6"
 	},
+	"type": "module",
 	"files": [],
 	"dependencies": {},
 	"devDependencies": {
-		"eslint": "^10.3.0",
 		"typescript": "^6.0.3",
 		"xo": "^2.0.2"
 	},
