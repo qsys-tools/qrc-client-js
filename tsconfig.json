@@ -1,25 +1,9 @@
 {
-	"compilerOptions": {
-		"rootDir": ".",
-		"esModuleInterop": true,
-		"target": "es2024",
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
-		"noEmit": true,
-		"allowSyntheticDefaultImports": true,
-		"allowImportingTsExtensions": true,
-		"strict": true,
-		"declaration": false,
-		"outDir": "./dist",
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"lib": [
-			"ESNext", "DOM"
-		],
-	},
-	"include": [
-		"integration-tests/**/*.ts",
-		"src/**/*.ts",
-		"@types/*.ts"
-	]
+	"extends": "./tsconfig.options.json",
+	"references": [
+		{
+			"path": "packages/qrc-client-js/tsconfig.json"
+		}
+	],
+	"include": [],
 }

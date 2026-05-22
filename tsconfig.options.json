@@ -1,0 +1,38 @@
+{
+	"compilerOptions": {
+		"rootDir": ".",
+		"composite": true,
+		"incremental": true,
+		"noEmit": false,
+		"declaration": true,
+		"rewriteRelativeImportExtensions": true,
+		"noEmitOnError": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"target": "es2024",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"strict": true,
+		"allowSyntheticDefaultImports": true,
+		"allowImportingTsExtensions": true,
+		"outDir": "./dist",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		// "noUncheckedIndexedAccess": true,
+		// "exactOptionalPropertyTypes": true,
+		"lib": [
+			"ESNext", "DOM"
+		],
+
+		// "jsx": "react-jsx",
+		// "verbatimModuleSyntax": true,
+		// "isolatedModules": true,
+		// "noUncheckedSideEffectImports": true,
+		// "moduleDetection": "force",
+	},
+	"include": [
+		"**/integration-tests/**/*.ts",
+		"**/src/**/*.ts",
+		"**/@types/*.ts"
+	]
+}
