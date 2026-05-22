@@ -17,12 +17,14 @@
 	"files": [],
 	"dependencies": {},
 	"devDependencies": {
-		"typescript": "^6.0.3",
-		"xo": "^2.0.2"
+		"typescript": "catalog:",
+		"xo": "catalog:"
 	},
 	"xo": [
 		{
-			"files": ["**"],
+			"files": [
+				"**"
+			],
 			"rules": {
 				"@typescript-eslint/naming-convention": "off",
 				"@stylistic/quote-props": [
@@ -31,7 +33,11 @@
 				]
 			}
 		},
-		{"ignores": ["**/src/validation/generated-types.ts"]}
+		{
+			"ignores": [
+				"**/src/validation/generated-types.ts"
+			]
+		}
 	],
 	"packageManager": "pnpm@11.2.2"
 }
