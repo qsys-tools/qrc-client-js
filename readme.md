@@ -8,16 +8,30 @@
 $ npm install qsys-qrc-client zen-observable zod
 ```
 
-Zod is technically an optional peer dependency, but it is required for type hints. If you don't want the Zod Validator in production, you should at least install it as a dev dependency.
+* Installing `zod` as a peer dependency is required to use the `ZodValidator`.
 
-You can replace `zen-observable` with whichever Observable implementation you want. See [any-observable](https://www.npmjs.com/package/any-observable).
+* An `Observable` implementation is required for `pollGroup` usage. `zen-observable` is a minimal implementation. `RxJs` is also a popular option. But you can use whichever Observable implementation you want. See [any-observable](https://www.npmjs.com/package/any-observable).
 
 ## Usage
 
 ```js
 import QrcClient, {commands, ZodValidator} from 'qsys-qrc-client';
 
-const client = new QrcClient({validator: new ZodValidator()});
+// Validator is totally optional... Helpful to catch bugs early in development.
+const validator = new ZodValidator({
+	// all options are optional and have sensible defaults.
+	parseLevel: {
+			commands: 'strict', // do not allow unknown properties on commands you send
+			results: 'loose', // allow unknown properties on responses from the core
+	},
+	onParseFailure: {
+			commands: 'logAndThrow', // log and fail immediately
+			results: 'log' // just log that a validation failure.
+			// Available options are 'throw', 'log', 'logAndThrow', 'ignore', or a custom function.
+	}
+})
+
+const client = new QrcClient({validator});
 client.connect({
   port: 1710,
   host: '192.168.1.10'
@@ -30,6 +44,8 @@ async function checkStatus() {
   //=> "My Test Design is running on a Emulator"
 }
 ```
+
+The zod validator is used to auto-generate the included type-system, and run against the emulator during testing with `strict` mode and `logAndThrow` for both commands and responses. This ensures our types accurately reflect reality. It's not necessary that you install `zod` or enable the validator for production.
 
 
 ## API
