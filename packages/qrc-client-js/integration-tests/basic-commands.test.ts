@@ -28,6 +28,7 @@ import type {CommunicationChannel} from '../src/socket-channel/communication-cha
 
 // @ts-expect-error Just making `.only` work for local testing
 const test: SerialFn = isCI ? ava.serial.skip : ava.serial;
+const failingTest = isCI ? ava.serial.skip : ava.serial.failing;
 
 const useNoopValidator = process.argv.includes('--noop-validator');
 
@@ -335,7 +336,7 @@ test('LoopPlayer.Start', withEmulator, async (t: ExecutionContext, client: QrcCl
 	}), undefined);
 });
 
-test.failing('LoopPlayer.Stop', withEmulator, async (t, client) => {
+failingTest('LoopPlayer.Stop', withEmulator, async (t, client) => {
 	await client.send('LoopPlayer.Stop', {
 		Name: 'Loop_Player',
 		Outputs: [1],
@@ -343,7 +344,7 @@ test.failing('LoopPlayer.Stop', withEmulator, async (t, client) => {
 	t.pass('If this passes, it means the emulator is better handling loop players. Update the test');
 });
 
-test.failing('LoopPlayer.Cancel', withEmulator, async (t, client) => {
+failingTest('LoopPlayer.Cancel', withEmulator, async (t, client) => {
 	await client.send('LoopPlayer.Cancel', {
 		Name: 'Loop_Player',
 		Outputs: [1],
