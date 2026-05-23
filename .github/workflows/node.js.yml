@@ -37,4 +37,4 @@ jobs:
         with:
           access-token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Coverage Report'
-        run: 'cat ./coverage/coverate-details.md >> $GITHUB_STEP_SUMMARY'
+        run: 'cat ./coverage/coverage-details.md >> $GITHUB_STEP_SUMMARY'
