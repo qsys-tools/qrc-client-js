@@ -1,0 +1,15 @@
+$schema: '../../.moon/cache/schemas/project.json'
+
+language: typescript
+
+tags:
+  - xo
+  - ava
+
+dependsOn:
+  - json-rpc-channel
+
+tasks:
+  test:
+    deps:
+      - '^:typecheck'

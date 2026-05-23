@@ -1,0 +1,49 @@
+$schema: '../cache/schemas/tasks.json'
+
+inheritedBy:
+  language: typescript
+
+fileGroups:
+  ts-config-options:
+    - '/tsconfig.options.json'
+  ts-config:
+    - 'tsconfig.json'
+  sources:
+    - '*.{ts,js}'
+    - 'src/**/*.{ts,js}'
+    - '!**/*.test.{ts,js}'
+  tests:
+    - 'tests/**/*.{ts,js}'
+    - '**/*.test.{ts,js}'
+    - '!node_modules/**'
+
+tasks:
+  clean-types:
+    toolchain: 'node'
+    command:
+      - 'del-cli'
+      - 'dist'
+    options:
+      cache: false
+      mergeArgs: replace
+
+  typecheck:
+    deps:
+      - '~:clean-types'
+    options:
+      outputStyle: buffer-only-failure
+      mergeInputs: append
+      mergeDeps: append
+    command:
+      - 'tsc'
+      - '--build'
+      - '--pretty'
+      - '--verbose'
+    inputs:
+      - '@group(sources)'
+      - '@group(tests)'
+      - '@group(ts-config)'
+      - '@group(ts-config-options)'
+    outputs:
+      # Matches `compilerOptions.outDir`
+      - './dist'

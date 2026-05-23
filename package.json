@@ -15,8 +15,11 @@
 	},
 	"type": "module",
 	"files": [],
-	"dependencies": {},
 	"devDependencies": {
+		"@swc/core": "catalog:",
+		"@types/node": "catalog:",
+		"del-cli": "catalog:",
+		"monocart-coverage-reports": "catalog:",
 		"typescript": "catalog:",
 		"xo": "catalog:"
 	},

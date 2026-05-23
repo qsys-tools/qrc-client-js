@@ -1,0 +1,20 @@
+$schema: './cache/schemas/tasks.json'
+
+taskOptions:
+  # Incremental cache key to invalidate all caches when needed.
+  cacheKey: '1'
+  outputStyle: buffer-only-failure
+
+tasks:
+  clean:
+    command: noop
+    inputs: []
+    options:
+      cache: false
+    deps:
+      - target: '~:clean-types'
+        optional: true
+      - target: '~:clean-coverage'
+        optional: true
+      - target: '~:clean-dist'
+        optional: true

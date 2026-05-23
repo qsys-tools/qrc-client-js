@@ -7,19 +7,34 @@ on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [22.x, 24.x]
 
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+      - uses: 'moonrepo/setup-toolchain@v0'
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run -r test
+          auto-install: true
+          auto-setup: true
+        env:
+          MOON_NODE_VERSION: ${{ matrix.node-version }}
+      - uses: 'jamestalmage/cache-node-deps@v6'
+      - name: 'Install Dependencies'
+        run: 'pnpm install --frozen-lockfile'
+        shell: bash
+      - run: 'moon ci --summary detailed'
+        env:
+          MOON_NODE_VERSION: ${{ matrix.node-version }}
+        shell: bash
+      - name: 'Pretty Print Moon Results'
+        uses: 'appthrust/moon-ci-retrospect@v2'
+        if: success() || failure()
+      - name: 'Comment build status'
+        uses: 'moonrepo/run-report-action@v1'
+        if: success() || failure()
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Coverage Report'
+        run: 'cat ./coverage/coverate-details.md >> $GITHUB_STEP_SUMMARY'

@@ -34,12 +34,11 @@
 		"client"
 	],
 	"dependencies": {
+		"@qsys-tools/json-rpc-channel": "workspace:*",
 		"any-observable": "catalog:",
 		"supports-color": "catalog:",
 		"through2": "catalog:",
-		"uuid": "catalog:",
-		"ws": "catalog:",
-		"@qsys-tools/json-rpc-channel": "workspace:*"
+		"uuid": "catalog:"
 	},
 	"devDependencies": {
 		"@types/is-ci": "catalog:",
@@ -56,6 +55,7 @@
 		"make-dir": "catalog:",
 		"p-event": "catalog:",
 		"typescript": "catalog:",
+		"ws": "catalog:",
 		"xo": "catalog:",
 		"zen-observable": "catalog:",
 		"zod-to-ts": "catalog:"

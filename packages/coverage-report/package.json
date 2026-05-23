@@ -1,0 +1,22 @@
+{
+	"name": "coverage-report",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"private": true,
+	"devDependencies": {
+		"monocart-coverage-reports": "catalog:",
+		"@types/node": "catalog:"
+	},
+	"dependencies": {
+		"@qsys-tools/json-rpc-channel": "workspace:*",
+		"qsys-qrc-client": "workspace:*"
+	}
+}

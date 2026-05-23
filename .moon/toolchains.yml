@@ -1,0 +1,28 @@
+$schema: ./cache/schemas/toolchains.json
+
+# https://moonrepo.dev/docs/config/toolchain#typescript
+
+javascript:
+  packageManager: 'pnpm'
+  dedupeOnLockfileChange: true
+  dependencyVersionFormat: workspace
+  rootPackageDependenciesOnly: false
+  syncPackageManagerField: true
+  syncProjectWorkspaceDependencies: true
+
+node:
+  version: '24.16.0'
+  syncVersionManagerConfig: 'nvm'
+
+pnpm:
+  version: '11.2.2'
+
+typescript:
+  createMissingConfig: true
+  includeProjectReferenceSources: false
+  syncProjectReferences: true
+  syncProjectReferencesToPaths: true
+  projectConfigFileName: 'tsconfig.json'
+  rootOptionsConfigFileName: 'tsconfig.options.json'
+  routeOutDirToCache: false
+  includeSharedTypes: true

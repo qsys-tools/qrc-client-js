@@ -1,0 +1,46 @@
+$schema: '../cache/schemas/tasks.json'
+
+inheritedBy:
+  tag: ava
+
+tasks:
+  # Run unit tests
+  test:
+    deps:
+      - '~:clean-coverage'
+    options:
+      runInCI: false
+      outputStyle: stream
+    command:
+      - 'ava'
+    inputs:
+      - 'package.json'
+      - '@group(sources)'
+      - '@group(tests)'
+
+  test-cov:
+    options:
+      runInCI: true
+    extends: 'test'
+    command:
+      - 'mcr'
+      - '-c'
+      - $workspaceRoot/mcr.config.ts
+      - 'ava'
+    outputs:
+      - '/.moon/cache/coverage/$projectSource'
+
+  # Watch for test changes
+  test-watch:
+    command: 'ava --watch'
+    preset: server
+
+  clean-coverage:
+    command:
+      - pnpm
+      - exec
+      - del-cli
+      - --force
+      - $workspaceRoot/.moon/cache/coverage/$projectSource
+    options:
+      cache: false

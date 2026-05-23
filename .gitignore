@@ -7,3 +7,6 @@ dist
 .tsimp
 .prototools
 **/integration-tests/data
+.moon/cache
+**/tsconfig.tsbuildinfo
+coverage

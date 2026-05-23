@@ -1,0 +1,7 @@
+$schema: '../../.moon/cache/schemas/project.json'
+
+language: typescript
+
+tags:
+  - xo
+  - ava

@@ -1,10 +1,14 @@
 {
 	"compilerOptions": {
-		"rootDir": ".",
+		"rootDir": "${configDir}/src",
+		"outDir": "${configDir}/dist",
+		"tsBuildInfoFile": "${configDir}/dist/tsconfig.tsbuildinfo",
 		"composite": true,
 		"incremental": true,
 		"noEmit": false,
 		"declaration": true,
+		"sourceMap": true,
+		"declarationMap": true,
 		"rewriteRelativeImportExtensions": true,
 		"noEmitOnError": true,
 		"skipLibCheck": true,
@@ -15,7 +19,6 @@
 		"strict": true,
 		"allowSyntheticDefaultImports": true,
 		"allowImportingTsExtensions": true,
-		"outDir": "./dist",
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		// "noUncheckedIndexedAccess": true,
@@ -30,6 +33,10 @@
 		// "noUncheckedSideEffectImports": true,
 		// "moduleDetection": "force",
 	},
-	"include": [],
+	"include": [
+		"${configDir}/@types",
+		"${configDir}/src/**/*.ts",
+		"${configDir}/integration-tests/**/*.ts",
+	],
 	"files": []
 }

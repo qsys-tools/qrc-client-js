@@ -1,0 +1,28 @@
+$schema: '../cache/schemas/tasks.json'
+
+inheritedBy:
+  tag: xo
+
+tasks:
+  lint:
+    command:
+      - xo
+    inputs:
+      # Source and test files
+      - '@group(sources)'
+      - '@group(tests)'
+      # Other config files
+      - '*.config.*'
+      # Project configs, any format, any depth
+      - '**/.eslintrc.*'
+      # Root configs, any format
+      - '/.eslintrc.*'
+      - 'types/**/*'
+      - 'tsconfig.json'
+      - '/tsconfig.options.json'
+
+  fix-lint:
+    options:
+      runInCI: false
+    extends: lint
+    args: '--fix'

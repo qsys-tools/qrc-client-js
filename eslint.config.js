@@ -2,7 +2,7 @@ import xo from 'xo';
 import pkg from './package.json' with {type: 'json'};
 
 const config = xo.xoToEslintConfig([
-	{space: false},
+	{space: false, prettier: 'compat'},
 	{
 		rules: {
 			'@stylistic/indent': 'off',

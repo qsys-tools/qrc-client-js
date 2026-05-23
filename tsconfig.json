@@ -1,13 +1,25 @@
 {
 	"extends": "./tsconfig.options.json",
+	"compilerOptions": {
+		"rootDir": ".",
+	},
 	"references": [
 		{
-			"path": "packages/qrc-client-js/tsconfig.json"
+			"path": "./packages/coverage-report"
+		},
+		{
+			"path": "./packages/json-rpc-channel"
+		},
+		{
+			"path": "./packages/qrc-client-js"
 		},
 		{
 			"path": "packages/qrc-client-js/tsconfig.json"
 		},
+		{
+			"path": "packages/qrc-client-js/tsconfig.json"
+		}
 	],
-	"include": [],
+	"include": ["mcr.config.ts"],
 	"files": []
 }
