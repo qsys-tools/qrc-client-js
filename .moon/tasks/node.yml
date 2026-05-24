@@ -7,11 +7,9 @@ fileGroups:
   sources:
     - '*.{ts,js}'
     - 'src/**/*.{ts,js}'
-    - '!**/*.test.{ts,js}'
+    - '!node_modules/**'
   tests:
     - 'tests/**/*.{ts,js}'
-    - '**/*.test.{ts,js}'
-    - '!node_modules/**'
 
 implicitInputs:
   - 'package.json'

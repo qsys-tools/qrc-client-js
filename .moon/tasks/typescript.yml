@@ -8,14 +8,6 @@ fileGroups:
     - '/tsconfig.options.json'
   ts-config:
     - 'tsconfig.json'
-  sources:
-    - '*.{ts,js}'
-    - 'src/**/*.{ts,js}'
-    - '!**/*.test.{ts,js}'
-  tests:
-    - 'tests/**/*.{ts,js}'
-    - '**/*.test.{ts,js}'
-    - '!node_modules/**'
 
 tasks:
   clean-types:

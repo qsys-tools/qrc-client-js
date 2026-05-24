@@ -2,15 +2,17 @@ $schema: '../../.moon/cache/schemas/project.json'
 
 language: 'typescript'
 
-dependsOn:
-  - json-rpc-channel
-  - qrc-client-js
+toolchains:
+  typescript:
+    syncProjectReferences: false
+    syncProjectReferencesToPaths: false
 
 tasks:
   coverage-report:
     options:
       runInCI: true
       outputStyle: 'buffer'
-    dependsOn:
-      - '^:test-cov'
+    deps:
+      - '#vitest:test-cov'
+      - '#ava:test-cov'
     command: 'node ./src/merge-coverage.ts'

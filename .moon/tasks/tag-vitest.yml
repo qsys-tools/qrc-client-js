@@ -1,0 +1,53 @@
+$schema: '../cache/schemas/tasks.json'
+
+inheritedBy:
+  tag: vitest
+
+fileGroups:
+  vitest-config:
+    - 'vitest.config.*'
+
+tasks:
+  # Run unit tests
+  test:
+    options:
+      runInCI: false
+      outputStyle: stream
+    command:
+      - 'vitest'
+      - 'run'
+      # Dont fail if a project has no tests
+      - '--passWithNoTests'
+      - '--reporter'
+      - 'verbose'
+    inputs:
+      - '@group(vitest-config)'
+      - '@group(sources)'
+      - '@group(tests)'
+
+  test-cov:
+    deps:
+      - '~:clean-coverage'
+    options:
+      outputStyle: buffer-only-failure
+      runInCI: true
+      mergeArgs: append
+    extends: 'test'
+    args: '--coverage'
+    outputs:
+      - '/.moon/cache/coverage/$projectSource'
+
+  # Watch for test changes
+  test-watch:
+    command: 'vitest watch'
+    preset: server
+
+  clean-coverage:
+    command:
+      - pnpm
+      - exec
+      - del-cli
+      - --force
+      - $workspaceRoot/.moon/cache/coverage/$projectSource
+    options:
+      cache: false

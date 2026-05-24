@@ -1,15 +1,15 @@
 import type {Socket} from 'node:net';
 import type {Readable, Writable} from 'node:stream';
 import pump from 'pump';
-import type {JsonRpcMessage} from './types.ts';
+import type {JsonRpcMessage} from './json-rpc.ts';
 import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
 } from './stream-transforms.ts';
-import {AbstractChannel} from './abstract-channel.ts';
+import type {CommunicationChannel} from './communication-channel.ts';
 
 type SocketConnectionInfo = {host: string; port: number};
 
-export class SocketChannel extends AbstractChannel {
+export class SocketChannel extends EventTarget implements CommunicationChannel {
 	protected finished = false;
 	protected errors: Error[] = [];
 

@@ -4,4 +4,4 @@ language: typescript
 
 tags:
   - xo
-  - ava
+  - vitest

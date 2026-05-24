@@ -1,28 +1,8 @@
 {
 	"extends": "../../tsconfig.options.json",
-	"references": [
-		{
-			"path": "../json-rpc-channel"
-		},
-		{
-			"path": "../qrc-client-js"
-		}
-	],
 	"compilerOptions": {
-		"types": ["node"],
-		"paths": {
-			"@qsys-tools/json-rpc-channel": [
-				"../json-rpc-channel/src/index.ts"
-			],
-			"@qsys-tools/json-rpc-channel/*": [
-				"../json-rpc-channel/src/*"
-			],
-			"qsys-qrc-client": [
-				"../qrc-client-js/src/index.ts"
-			],
-			"qsys-qrc-client/*": [
-				"../qrc-client-js/src/*"
-			]
-		}
+		"types": [
+			"node"
+		]
 	}
 }

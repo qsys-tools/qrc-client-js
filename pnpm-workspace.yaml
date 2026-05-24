@@ -27,12 +27,16 @@ catalog:
   make-dir: ^5.1.0
   monocart-coverage-reports: ^2.12.11
   p-event: ^7.1.0
+  partysocket: ^1.1.19
   pump: ^3.0.4
   split2: ^4.2.0
   supports-color: ^10.2.2
   through2: ^5.0.0
   typescript: ^6.0.3
+  typescript-event-target: ^1.1.2
   uuid: ^14.0.0
+  vitest: ^4.1.7
+  vitest-monocart-coverage: ^4.0.2
   ws: ^8.20.1
   xo: ^2.0.2
   zen-observable: ^0.10.0

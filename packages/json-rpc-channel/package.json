@@ -24,7 +24,7 @@
 	},
 	"main": "dist/index.js",
 	"exports": {
-		"." : {
+		".": {
 			"types": "./dist/index.d.ts",
 			"development": "./src/index.ts",
 			"production": "./dist/index.js",
@@ -42,10 +42,12 @@
 		"client"
 	],
 	"dependencies": {
+		"partysocket": "catalog:",
 		"pump": "catalog:",
 		"split2": "catalog:",
 		"supports-color": "catalog:",
 		"through2": "catalog:",
+		"typescript-event-target": "catalog:",
 		"ws": "catalog:"
 	},
 	"devDependencies": {
@@ -60,6 +62,8 @@
 		"make-dir": "catalog:",
 		"p-event": "catalog:",
 		"typescript": "catalog:",
+		"vitest": "catalog:",
+		"vitest-monocart-coverage": "catalog:",
 		"xo": "catalog:"
 	},
 	"ava": {
