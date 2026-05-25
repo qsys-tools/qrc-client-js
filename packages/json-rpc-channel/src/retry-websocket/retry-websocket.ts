@@ -9,6 +9,11 @@
  */
 
 import { TypedEventTarget } from 'typescript-event-target';
+import {
+	isCloseEvent, isMessageEvent, isOpenEvent, isErrorEvent,
+	OpenEvent, CloseEvent, ErrorEvent,
+	type IOpenEvent, type IErrorEvent, type ICloseEvent
+} from '../events.ts';
 import {getNextDelay} from './retry-delay.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
@@ -23,79 +28,66 @@ if (!globalThis.EventTarget || !globalThis.Event) {
 `);
 }
 
-export class ErrorEvent extends Event {
-	public message: string;
-	public error: Error;
-	constructor(error: Error, target: any) {
-		super("error", target);
-		this.message = error.message;
-		this.error = error;
-	}
-}
-
-export class CloseEvent extends Event {
-	public code: number;
-	public reason: string;
-	public wasClean = true;
-	constructor(code = 1000, reason = "", target: any) {
-		super("close", target);
-		this.code = code;
-		this.reason = reason;
-	}
-}
-
 export type WebSocketEventMap = {
-	close: CloseEvent;
-	error: ErrorEvent;
+	close: ICloseEvent;
+	error: IErrorEvent;
 	message: MessageEvent;
-	open: Event;
+	open: IOpenEvent;
 }
 
 const Events = {
 	Event,
 	ErrorEvent,
-	CloseEvent
+	CloseEvent,
+	MessageEvent
 };
 
-function assert(condition: unknown, msg?: string): asserts condition {
+export type WebsocketEvent = WebSocketEventMap[keyof WebSocketEventMap];
+
+function assert(condition: unknown, message?: string): asserts condition {
 	if (!condition) {
-		throw new Error(msg);
+		throw new Error(message);
 	}
 }
 
-function cloneEventBrowser(e: Event) {
-	return new (e as any).constructor(e.type, e) as Event;
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-type-assertion */
+function cloneEventBrowser<E extends WebsocketEvent>(event: E): E {
+	// @ts-expect-error types are hard
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+	return new (event as E).constructor(event.type, event) as E;
 }
 
-function cloneEventNode(e: Event) {
-	if ("data" in e) {
-		const evt = new MessageEvent(e.type, e);
-		return evt;
+function cloneEventNode<E extends WebsocketEvent>(event: E): E {
+	if (isMessageEvent(event)) {
+		// @ts-expect-error types are hard
+		return new MessageEvent(event.type, event);
 	}
 
-	if ("code" in e || "reason" in e) {
+	if (isCloseEvent(event)) {
 		const evt = new CloseEvent(
-			// @ts-expect-error we need to fix event/listener types
-			(e.code || 1999) as number,
-			// @ts-expect-error we need to fix event/listener types
-			(e.reason || "unknown reason") as string,
-			e
+			(event.code || 1999),
+			(event.reason || "unknown reason"),
+			event.wasClean
 		);
-		return evt;
+		return evt as E;
 	}
 
-	if ("error" in e) {
-		const evt = new ErrorEvent(e.error as Error, e);
-		return evt;
+	if (isErrorEvent(event)) {
+		return new ErrorEvent(event.error, event.message || event.error?.message) as E;
 	}
 
-	const evt = new Event(e.type, e);
-	return evt;
+	if (isOpenEvent(event)) {
+		return new OpenEvent() as E;
+	}
+
+	// @ts-expect-error We're going to try
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+	return new Event(event.type, event) as E;
 }
+/* eslint-enable @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-type-assertion */
 
-const isNode =
-	typeof process !== "undefined" &&
-	typeof process.versions?.node !== "undefined";
+// eslint-disable-next-line n/prefer-global/process
+const isNode = globalThis.process?.versions?.node !== undefined;
 
 // React Native has process and document polyfilled but not process.versions.node
 // It needs Node-style event cloning because browser-style cloning produces
@@ -505,16 +497,22 @@ const partysocket = new PartySocket({
 			.catch((error: unknown) => {
 				this._connectLock = false;
 				const message = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' ? error.message : undefined;
-				this._handleError(new Events.ErrorEvent(new Error(message), this));
+				if (message) {
+					const newError = new Error(message, {cause: error});
+					this._handleError(new Events.ErrorEvent(newError));
+				}
+
+				const newError = new Error(String(error), {cause: error});
+				this._handleError(new Events.ErrorEvent(newError));
 			});
 	}
 
 	private _handleTimeout() {
 		this._debug("timeout event");
-		this._handleError(new Events.ErrorEvent(new Error("TIMEOUT"), this));
+		this._handleError(new Events.ErrorEvent(new Error("TIMEOUT")));
 	}
 
-	private _disconnect(code = 1000, reason?: string) {
+	private _disconnect(code = 1000, reason = 'unknown reason') {
 		this._clearTimeouts();
 		if (!this._ws) {
 			return;
@@ -529,7 +527,7 @@ const partysocket = new PartySocket({
 				this._ws.close(code, reason);
 			}
 
-			this._handleClose(new Events.CloseEvent(code, reason, this));
+			this._handleClose(new Events.CloseEvent(code, reason, true));
 		} catch {
 			// ignore
 		}
@@ -564,7 +562,7 @@ const partysocket = new PartySocket({
 			this.onopen(event);
 		}
 
-		this.dispatchEvent(cloneEvent(event));
+		this.dispatchTypedEvent('open', cloneEvent(event));
 	};
 
 	private readonly _handleMessage = (event: MessageEvent) => {
@@ -574,7 +572,7 @@ const partysocket = new PartySocket({
 			this.onmessage(event);
 		}
 
-		this.dispatchEvent(cloneEvent(event));
+		this.dispatchTypedEvent('message', cloneEvent(event));
 	};
 
 	private readonly _handleError = (event: ErrorEvent) => {
@@ -589,7 +587,7 @@ const partysocket = new PartySocket({
 		}
 
 		this._debug("exec error listeners");
-		this.dispatchEvent(cloneEvent(event));
+		this.dispatchTypedEvent('error', cloneEvent(event));
 
 		this._connect();
 	};
@@ -606,7 +604,7 @@ const partysocket = new PartySocket({
 			this.onclose(event);
 		}
 
-		this.dispatchEvent(cloneEvent(event));
+		this.dispatchTypedEvent('close', cloneEvent(event));
 	};
 
 	private _removeListeners() {

@@ -13,7 +13,7 @@ import {
 	vitest
 } from "vitest";
 import { type WebSocket as NodeWebSocket, WebSocketServer, type Server } from "ws";
-import ReconnectingWebSocket, {type ErrorEvent} from "./retry-websocket.ts";
+import ReconnectingWebSocket from "./retry-websocket.ts";
 
 const PORT = 50_123;
 const URL = `ws://localhost:${PORT}/`;
@@ -638,7 +638,7 @@ testDone("immediately-failed connection should not timeout", (done, fail) => {
 		maxReconnectionDelay: 600
 	});
 
-	ws.addEventListener("error", (error: ErrorEvent) => {
+	ws.addEventListener("error", (error) => {
 		if (error.message === "TIMEOUT") {
 			fail(new Error("timeout should not be called"));
 		}

@@ -19,10 +19,10 @@ export type IJsonRpcMessageEvent = Event & {
 };
 
 export type CommunicationChannelEventMap = {
-	open: Event;
-	close: CloseEvent;
-	error: ErrorEvent;
-	message: IJsonRpcMessageEvent;
+	'open': Event;
+	'close': CloseEvent;
+	'error': ErrorEvent;
+	'json-rpc-message': IJsonRpcMessageEvent;
 };
 
 export class OpenEvent extends Event implements IOpenEvent {
@@ -45,6 +45,26 @@ export class ErrorEvent extends Event implements IErrorEvent {
 
 export class JsonRpcMessageEvent extends Event implements IJsonRpcMessageEvent {
 	constructor(public readonly message: JsonRpcMessage) {
-		super('message');
+		super('json-rpc-message');
 	}
+}
+
+export function isOpenEvent(event: Event): event is IOpenEvent {
+	return event.type === 'open';
+}
+
+export function isMessageEvent(event: Event): event is MessageEvent {
+	return event.type === 'message' && 'data' in event;
+}
+
+export function isCloseEvent(event: Event): event is CloseEvent {
+	return event.type === 'close' && 'code' in event && 'reason' in event;
+}
+
+export function isErrorEvent(event: Event): event is ErrorEvent {
+	return event.type === 'error' && 'message' in event && 'error' in event;
+}
+
+export function isJsonRpcMessageEvent(event: Event): event is IJsonRpcMessageEvent {
+	return event.type === 'json-rpc-message' && 'message' in event;
 }
