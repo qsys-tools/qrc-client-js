@@ -165,9 +165,6 @@ importers:
       split2:
         specifier: 'catalog:'
         version: 4.2.0
-      supports-color:
-        specifier: 'catalog:'
-        version: 10.2.2
       through2:
         specifier: 'catalog:'
         version: 5.0.1
@@ -201,7 +198,7 @@ importers:
         version: 11.0.0(monocart-coverage-reports@2.12.11)
       eslint:
         specifier: 'catalog:'
-        version: 10.4.0(supports-color@10.2.2)
+        version: 10.4.0
       make-dir:
         specifier: 'catalog:'
         version: 5.1.0
@@ -216,10 +213,10 @@ importers:
         version: 4.1.7(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.7)(@vitest/coverage-v8@4.1.7)(vite@8.0.14(@types/node@25.9.1))
       vitest-monocart-coverage:
         specifier: 'catalog:'
-        version: 4.0.2(supports-color@10.2.2)(vitest@4.1.7)
+        version: 4.0.2(vitest@4.1.7)
       xo:
         specifier: 'catalog:'
-        version: 2.0.2(@types/eslint@9.6.1)(@typescript-eslint/utils@8.59.4(eslint@10.4.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
+        version: 2.0.2(@types/eslint@9.6.1)(@typescript-eslint/utils@8.59.4(eslint@10.4.0)(typescript@6.0.3))
 
   packages/qrc-client-js:
     dependencies:
@@ -4040,9 +4037,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vitest/coverage-istanbul@4.1.7(supports-color@10.2.2)(vitest@4.1.7)':
+  '@vitest/coverage-istanbul@4.1.7(vitest@4.1.7)':
     dependencies:
-      '@babel/core': 7.29.0(supports-color@10.2.2)
+      '@babel/core': 7.29.0
       '@istanbuljs/schema': 0.1.6
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
@@ -5574,9 +5571,9 @@ snapshots:
 
   istanbul-lib-coverage@3.2.2: {}
 
-  istanbul-lib-instrument@6.0.3(supports-color@10.2.2):
+  istanbul-lib-instrument@6.0.3:
     dependencies:
-      '@babel/core': 7.29.0(supports-color@10.2.2)
+      '@babel/core': 7.29.0
       '@babel/parser': 7.29.3
       '@istanbuljs/schema': 0.1.6
       istanbul-lib-coverage: 3.2.2
@@ -6527,11 +6524,11 @@ snapshots:
       '@types/node': 25.9.1
       fsevents: 2.3.3
 
-  vitest-monocart-coverage@4.0.2(supports-color@10.2.2)(vitest@4.1.7):
+  vitest-monocart-coverage@4.0.2(vitest@4.1.7):
     dependencies:
-      '@vitest/coverage-istanbul': 4.1.7(supports-color@10.2.2)(vitest@4.1.7)
+      '@vitest/coverage-istanbul': 4.1.7(vitest@4.1.7)
       '@vitest/coverage-v8': 4.1.7(vitest@4.1.7)
-      istanbul-lib-instrument: 6.0.3(supports-color@10.2.2)
+      istanbul-lib-instrument: 6.0.3
       monocart-coverage-reports: 2.12.11
       test-exclude: 8.0.0
     transitivePeerDependencies:
@@ -6563,7 +6560,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.9.1
-      '@vitest/coverage-istanbul': 4.1.7(supports-color@10.2.2)(vitest@4.1.7)
+      '@vitest/coverage-istanbul': 4.1.7(vitest@4.1.7)
       '@vitest/coverage-v8': 4.1.7(vitest@4.1.7)
     transitivePeerDependencies:
       - msw

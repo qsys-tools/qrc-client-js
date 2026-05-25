@@ -5,7 +5,7 @@ import pump from 'pump';
 import {TypedEventTarget} from 'typescript-event-target';
 import type {JsonRpcMessage} from './json-rpc.ts';
 import {
-	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
+	nullJsonDecoder, nullJsonEncoder, rpcNoOpTimeout,
 } from './stream-transforms.ts';
 import type {CommunicationChannel} from './communication-channel.ts';
 import {
@@ -83,11 +83,10 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	};
 
 	protected buildReadStream(socket: Socket, finish: (error: Error | undefined) => void): Readable {
-		const readStream = log('received: ');
+		const readStream = nullJsonDecoder();
 
 		pump(
 			socket,
-			nullJsonDecoder(),
 			readStream,
 			finish,
 		);
@@ -96,17 +95,9 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	}
 
 	protected buildWriteStream(socket: Socket, finish: (error: Error | undefined) => void): Writable {
-		const writeStream = addRpcVersion();
+		const writeStream = rpcNoOpTimeout();
 		pump(
 			writeStream,
-			timeout(5000, () => {
-				this.send({
-					jsonrpc: '2.0',
-					method: 'NoOp',
-					params: {},
-				});
-			}),
-			log('sending: '),
 			nullJsonEncoder(),
 			socket,
 			finish,
