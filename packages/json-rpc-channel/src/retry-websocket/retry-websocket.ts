@@ -17,15 +17,7 @@ import {
 import {getNextDelay} from './retry-delay.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
-	console.error(`
-  PartySocket requires a global 'EventTarget' class to be available!
-  You can polyfill this global by adding this to your code before any partysocket imports:
-
-  \`\`\`
-  import 'partysocket/event-target-polyfill';
-  \`\`\`
-  Please file an issue at https://github.com/partykit/partykit if you're still having trouble.
-`);
+	throw new Error('No globalThis.EventTarget / globalThis.Event');
 }
 
 export type WebSocketEventMap = {
