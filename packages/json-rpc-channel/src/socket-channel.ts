@@ -7,7 +7,9 @@ import {
 	log, nullJsonDecoder, nullJsonEncoder, addRpcVersion, timeout,
 } from './stream-transforms.ts';
 import type {CommunicationChannel} from './communication-channel.ts';
-import {type CommunicationChannelEventMap, OpenEvent, CloseEvent, ErrorEvent, JsonRpcMessageEvent} from './events.ts';
+import {
+	type CommunicationChannelEventMap, OpenEvent, CloseEvent, ErrorEvent, JsonRpcMessageEvent,
+} from './events.ts';
 
 type SocketConnectionInfo = {host: string; port: number};
 
@@ -29,7 +31,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		this.connectionInfo = connectionInfo;
 
 		const destroyHandler = () => {
-			this.removeEventListener('error', destroyHandler)
+			this.removeEventListener('error', destroyHandler);
 			this.destroy();
 		};
 
@@ -117,7 +119,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		}
 
 		this.finished = true;
-		this.dispatchTypedEvent('close', new CloseEvent(1000, 'some reason' , !error))
+		this.dispatchTypedEvent('close', new CloseEvent(1000, 'some reason', !error));
 	}
 
 	protected attachSocketListeners(socket: Socket) {
@@ -145,24 +147,24 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	}
 
 	protected onJsonMessage = (message: JsonRpcMessage) => {
-		this.dispatchTypedEvent('json-rpc-message', new JsonRpcMessageEvent(message))
-	}
+		this.dispatchTypedEvent('json-rpc-message', new JsonRpcMessageEvent(message));
+	};
 
 	protected onSocketClose = (hadError: boolean) => {
 		this.dispatchTypedEvent('close', new CloseEvent(1000, 'unknown reason', !hadError));
-	}
+	};
 
 	protected onSocketEnd = () => {
 		// Do Nothing... Prefer close
-	}
+	};
 
 	protected onSocketFinish = () => {
 		// Do nothing
-	}
+	};
 
 	protected onSocketConnect = () => {
 		// Do Nothing... Wait for ready event
-	}
+	};
 
 	protected onSocketConnectionAttempt = (_ip: string, _port: number, _family: number) => {
 		// Do Nothing
@@ -177,11 +179,11 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		if (error !== null) {
 			this.dispatchTypedEvent('error', new ErrorEvent(error, 'socket lookup failed'));
 		}
-	}
+	};
 
 	protected onSocketReady = () => {
 		this.dispatchTypedEvent('open', new OpenEvent());
-	}
+	};
 
 	protected onSocketTimeout = () => {
 		this.dispatchTypedEvent('error', new ErrorEvent(new Error('Socket timeout')));
