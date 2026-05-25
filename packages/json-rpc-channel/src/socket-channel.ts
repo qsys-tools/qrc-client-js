@@ -4,9 +4,7 @@ import {TypedEventTarget} from 'typescript-event-target';
 import type {JsonRpcMessage} from './json-rpc.ts';
 import {buildDuplexStream} from './stream-transforms.ts';
 import type {CommunicationChannel} from './communication-channel.ts';
-import {
-	type CommunicationChannelEventMap, OpenEvent, CloseEvent, ErrorEvent, JsonRpcMessageEvent,
-} from './events.ts';
+import {type CommunicationChannelEventMap, CmcEvents} from './events.ts';
 
 type SocketConnectionInfo = {host: string; port: number};
 
@@ -65,7 +63,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		// TODO: Implement DEBUG Logging. console.warn(`finish on ${stream} stream: ${error ?? 'no error'}`);
 		if (error && !this.errors.includes(error)) {
 			this.errors.push(error);
-			this.dispatchTypedEvent('error', new ErrorEvent(error, `${_stream} stream error`));
+			this.dispatchTypedEvent('error', new CmcEvents.ErrorEvent(error, `${_stream} stream error`));
 		}
 
 		if (this.finished) {
@@ -73,7 +71,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		}
 
 		this.finished = true;
-		this.dispatchTypedEvent('close', new CloseEvent(1000, 'some reason', !error));
+		this.dispatchTypedEvent('close', new CmcEvents.CloseEvent(1000, 'some reason', !error));
 	};
 
 	protected attachSocketListeners(socket: Socket) {
@@ -102,12 +100,12 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 
 	protected onJsonMessage = (message: JsonRpcMessage) => {
 		logger.trace('onJsonMessage {*}', message);
-		this.dispatchTypedEvent('json-rpc-message', new JsonRpcMessageEvent(message));
+		this.dispatchTypedEvent('json-rpc-message', new CmcEvents.JsonRpcMessageEvent(message));
 	};
 
 	protected onSocketClose = (hadError: boolean) => {
 		logger.trace('onSocketClose {*}', {hadError});
-		this.dispatchTypedEvent('close', new CloseEvent(1000, 'unknown reason', !hadError));
+		this.dispatchTypedEvent('close', new CmcEvents.CloseEvent(1000, 'unknown reason', !hadError));
 	};
 
 	protected onSocketEnd = () => {
@@ -134,7 +132,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		logger.warning('onSocketConnectionAttemptFailed {*}', {
 			ip, port, family, error,
 		});
-		this.dispatchTypedEvent('error', new ErrorEvent(error, 'socket connection attempt failed'));
+		this.dispatchTypedEvent('error', new CmcEvents.ErrorEvent(error, 'socket connection attempt failed'));
 	};
 
 	// eslint-disable-next-line @typescript-eslint/no-restricted-types
@@ -143,17 +141,17 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 			logger.warning('onSocketLookup', {
 				error, address, family, host,
 			});
-			this.dispatchTypedEvent('error', new ErrorEvent(error, 'socket lookup failed'));
+			this.dispatchTypedEvent('error', new CmcEvents.ErrorEvent(error, 'socket lookup failed'));
 		}
 	};
 
 	protected onSocketReady = () => {
 		logger.trace('onSocketReady');
-		this.dispatchTypedEvent('open', new OpenEvent());
+		this.dispatchTypedEvent('open', new CmcEvents.OpenEvent());
 	};
 
 	protected onSocketTimeout = () => {
 		logger.warning('onSocketTimeout');
-		this.dispatchTypedEvent('error', new ErrorEvent(new Error('Socket timeout')));
+		this.dispatchTypedEvent('error', new CmcEvents.ErrorEvent(new Error('Socket timeout')));
 	};
 }

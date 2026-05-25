@@ -10,85 +10,20 @@
 
 import {TypedEventTarget} from 'typescript-event-target';
 import {
-	isCloseEvent, isMessageEvent, isOpenEvent, isErrorEvent,
-	OpenEvent, CloseEvent, ErrorEvent,
-	type IOpenEvent, type IErrorEvent, type ICloseEvent,
-} from '../events.ts';
+	WsEvents, type IErrorEvent, type ICloseEvent, type IOpenEvent, type WebSocketEventMap,
+} from './websocket-events.ts';
 import {getNextDelay} from './retry-delay.ts';
+import {cloneWsEvent} from './clone-ws-event.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
 	throw new Error('No globalThis.EventTarget / globalThis.Event');
 }
-
-export type WebSocketEventMap = {
-	close: ICloseEvent;
-	error: IErrorEvent;
-	message: MessageEvent;
-	open: IOpenEvent;
-};
-
-const Events = {
-	Event,
-	ErrorEvent,
-	CloseEvent,
-	MessageEvent,
-};
-
-export type WebsocketEvent = WebSocketEventMap[keyof WebSocketEventMap];
 
 function assert(condition: unknown, message?: string): asserts condition {
 	if (!condition) {
 		throw new Error(message);
 	}
 }
-
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-type-assertion */
-function cloneEventBrowser<E extends WebsocketEvent>(event: E): E {
-	// @ts-expect-error types are hard
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-	return new (event as E).constructor(event.type, event) as E;
-}
-
-function cloneEventNode<E extends WebsocketEvent>(event: E): E {
-	if (isMessageEvent(event)) {
-		// @ts-expect-error types are hard
-		return new MessageEvent(event.type, event);
-	}
-
-	if (isCloseEvent(event)) {
-		const evt = new CloseEvent(
-			(event.code || 1999),
-			(event.reason || 'unknown reason'),
-			event.wasClean,
-		);
-		return evt as E;
-	}
-
-	if (isErrorEvent(event)) {
-		return new ErrorEvent(event.error, event.message || event.error?.message) as E;
-	}
-
-	if (isOpenEvent(event)) {
-		return new OpenEvent() as E;
-	}
-
-	// @ts-expect-error We're going to try
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-	return new Event(event.type, event) as E;
-}
-/* eslint-enable @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-type-assertion */
-
-// eslint-disable-next-line n/prefer-global/process
-const isNode = globalThis.process?.versions?.node !== undefined;
-
-// React Native has process and document polyfilled but not process.versions.node
-// It needs Node-style event cloning because browser-style cloning produces
-// events that fail instanceof Event checks in event-target-polyfill
-// See: https://github.com/cloudflare/partykit/issues/257
-const isReactNative
-	= typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
-
-const cloneEvent = isNode || isReactNative ? cloneEventNode : cloneEventBrowser;
 
 export type Options = {
 	WebSocket?: any;
@@ -285,12 +220,12 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 	/**
 	 * An event listener to be called when the WebSocket connection's readyState changes to CLOSED
 	 */
-	public onclose: ((event: CloseEvent) => void) | null = null;
+	public onclose: ((event: ICloseEvent) => void) | null = null;
 
 	/**
 	 * An event listener to be called when an error occurs
 	 */
-	public onerror: ((event: ErrorEvent) => void) | null = null;
+	public onerror: ((event: IErrorEvent) => void) | null = null;
 
 	/**
 	 * An event listener to be called when a message is received from the server
@@ -301,7 +236,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 	 * An event listener to be called when the WebSocket connection's readyState changes to OPEN;
 	 * this indicates that the connection is ready to send and receive data
 	 */
-	public onopen: ((event: Event) => void) | null = null;
+	public onopen: ((event: IOpenEvent) => void) | null = null;
 
 	/**
 	 * Closes the WebSocket connection or connection attempt, if any. If the connection is already
@@ -487,17 +422,17 @@ const partysocket = new PartySocket({
 				const message = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' ? error.message : undefined;
 				if (message) {
 					const newError = new Error(message, {cause: error});
-					this._handleError(new Events.ErrorEvent(newError));
+					this._handleError(new WsEvents.ErrorEvent(newError));
 				}
 
 				const newError = new Error(String(error), {cause: error});
-				this._handleError(new Events.ErrorEvent(newError));
+				this._handleError(new WsEvents.ErrorEvent(newError));
 			});
 	}
 
 	private _handleTimeout() {
 		this._debug('timeout event');
-		this._handleError(new Events.ErrorEvent(new Error('TIMEOUT')));
+		this._handleError(new WsEvents.ErrorEvent(new Error('TIMEOUT')));
 	}
 
 	private _disconnect(code = 1000, reason = 'unknown reason') {
@@ -515,7 +450,7 @@ const partysocket = new PartySocket({
 				this._ws.close(code, reason);
 			}
 
-			this._handleClose(new Events.CloseEvent(code, reason, true));
+			this._handleClose(new WsEvents.CloseEvent(code, reason, true));
 		} catch {
 			// ignore
 		}
@@ -526,7 +461,7 @@ const partysocket = new PartySocket({
 		this._retryCount = 0;
 	}
 
-	private readonly _handleOpen = (event: Event) => {
+	private readonly _handleOpen = (event: IOpenEvent) => {
 		this._debug('open event');
 		const {minUptime = DEFAULT.minUptime} = this._options;
 
@@ -550,7 +485,7 @@ const partysocket = new PartySocket({
 			this.onopen(event);
 		}
 
-		this.dispatchTypedEvent('open', cloneEvent(event));
+		this.dispatchTypedEvent('open', cloneWsEvent(event));
 	};
 
 	private readonly _handleMessage = (event: MessageEvent) => {
@@ -560,10 +495,10 @@ const partysocket = new PartySocket({
 			this.onmessage(event);
 		}
 
-		this.dispatchTypedEvent('message', cloneEvent(event));
+		this.dispatchTypedEvent('message', cloneWsEvent(event));
 	};
 
-	private readonly _handleError = (event: ErrorEvent) => {
+	private readonly _handleError = (event: IErrorEvent) => {
 		this._debug('error event', event.message);
 		this._disconnect(
 			undefined,
@@ -575,12 +510,12 @@ const partysocket = new PartySocket({
 		}
 
 		this._debug('exec error listeners');
-		this.dispatchTypedEvent('error', cloneEvent(event));
+		this.dispatchTypedEvent('error', cloneWsEvent(event));
 
 		this._connect();
 	};
 
-	private readonly _handleClose = (event: CloseEvent) => {
+	private readonly _handleClose = (event: ICloseEvent) => {
 		this._debug('close event');
 		this._clearTimeouts();
 
@@ -592,7 +527,7 @@ const partysocket = new PartySocket({
 			this.onclose(event);
 		}
 
-		this.dispatchTypedEvent('close', cloneEvent(event));
+		this.dispatchTypedEvent('close', cloneWsEvent(event));
 	};
 
 	private _removeListeners() {
