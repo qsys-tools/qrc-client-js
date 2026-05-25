@@ -340,6 +340,21 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 		throw new TypeError('Invalid UrlProvider');
 	}
 
+	private _constructWs(url: string, protocols: string | string[] | null) {
+		if (
+			!this._options.WebSocket
+			&& typeof WebSocket === 'undefined'
+			&& !didWarnAboutMissingWebSocket
+		) {
+			console.error('‼️ No WebSocket implementation available. You should define options.WebSocket.');
+			didWarnAboutMissingWebSocket = true;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const WS: typeof WebSocket = this._options.WebSocket ?? WebSocket;
+		return protocols ? new WS(url, protocols) : new WS(url);
+	}
+
 	private _connect() {
 		if (this._connectLock || !this._shouldReconnect) {
 			return;
@@ -374,33 +389,8 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 					return;
 				}
 
-				if (
-					!this._options.WebSocket
-					&& typeof WebSocket === 'undefined'
-					&& !didWarnAboutMissingWebSocket
-				) {
-					console.error(`‼️ No WebSocket implementation available. You should define options.WebSocket.
-
-For example, if you're using node.js, run \`npm install ws\`, and then in your code:
-
-import PartySocket from 'partysocket';
-import WS from 'ws';
-
-const partysocket = new PartySocket({
-  host: "127.0.0.1:1999",
-  room: "test-room",
-  WebSocket: WS
-});
-
-`);
-					didWarnAboutMissingWebSocket = true;
-				}
-
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const WS: typeof WebSocket = this._options.WebSocket ?? WebSocket;
+				this._ws = this._constructWs(url, protocols);
 				this._debug('connect', {url, protocols});
-				this._ws = protocols ? new WS(url, protocols) : new WS(url);
-
 				this._ws.binaryType = this._binaryType;
 				this._connectLock = false;
 				this._addListeners();
