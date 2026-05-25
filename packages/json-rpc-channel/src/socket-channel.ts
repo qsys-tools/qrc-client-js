@@ -1,5 +1,6 @@
 import type {Socket} from 'node:net';
 import type {Readable, Writable} from 'node:stream';
+import {getLogger} from '@logtape/logtape';
 import pump from 'pump';
 import {TypedEventTarget} from 'typescript-event-target';
 import type {JsonRpcMessage} from './json-rpc.ts';
@@ -12,6 +13,8 @@ import {
 } from './events.ts';
 
 type SocketConnectionInfo = {host: string; port: number};
+
+const logger = getLogger(['qsys-tools', 'json-rpc-channel', 'socket-channel']);
 
 export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap> implements CommunicationChannel {
 	protected finished = false;
@@ -29,6 +32,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 		super();
 		this.socket = socket;
 		this.connectionInfo = connectionInfo;
+		this.attachSocketListeners(socket);
 
 		const destroyHandler = () => {
 			this.removeEventListener('error', destroyHandler);
@@ -53,15 +57,17 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	}
 
 	connect() {
+		logger.trace('connect {*}', this.connectionInfo);
 		this.socket.connect(this.connectionInfo);
 	}
 
 	send(message: JsonRpcMessage) {
+		logger.trace('send {*}', message);
 		this.writeStream.write(message);
 	}
 
 	close() {
-		this.destroy();
+		this.end();
 	}
 
 	destroy = (error?: Error) => {
@@ -72,6 +78,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	};
 
 	end = () => {
+		logger.trace('end');
 		this.socket.end();
 	};
 
@@ -147,45 +154,59 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	}
 
 	protected onJsonMessage = (message: JsonRpcMessage) => {
+		logger.trace('onJsonMessage {*}', message);
 		this.dispatchTypedEvent('json-rpc-message', new JsonRpcMessageEvent(message));
 	};
 
 	protected onSocketClose = (hadError: boolean) => {
+		logger.trace('onSocketClose {*}', {hadError});
 		this.dispatchTypedEvent('close', new CloseEvent(1000, 'unknown reason', !hadError));
 	};
 
 	protected onSocketEnd = () => {
+		logger.trace('onSocketEnd');
 		// Do Nothing... Prefer close
 	};
 
 	protected onSocketFinish = () => {
+		logger.trace('onSocketFinish');
 		// Do nothing
 	};
 
 	protected onSocketConnect = () => {
+		logger.trace('onSocketConnect');
 		// Do Nothing... Wait for ready event
 	};
 
-	protected onSocketConnectionAttempt = (_ip: string, _port: number, _family: number) => {
+	protected onSocketConnectionAttempt = (ip: string, port: number, family: number) => {
+		logger.trace('onSocketConnectionAttempt {*}', {ip, port, family});
 		// Do Nothing
 	};
 
-	protected onSocketConnectionAttemptFailed = (_ip: string, _port: number, _family: number, error: Error) => {
+	protected onSocketConnectionAttemptFailed = (ip: string, port: number, family: number, error: Error) => {
+		logger.warning('onSocketConnectionAttemptFailed {*}', {
+			ip, port, family, error,
+		});
 		this.dispatchTypedEvent('error', new ErrorEvent(error, 'socket connection attempt failed'));
 	};
 
 	// eslint-disable-next-line @typescript-eslint/no-restricted-types
-	protected onSocketLookup = (error: Error | null, _address: string, _family: number | null, _host: string) => {
+	protected onSocketLookup = (error: Error | null, address: string, family: number | null, host: string) => {
 		if (error !== null) {
+			logger.warning('onSocketLookup', {
+				error, address, family, host,
+			});
 			this.dispatchTypedEvent('error', new ErrorEvent(error, 'socket lookup failed'));
 		}
 	};
 
 	protected onSocketReady = () => {
+		logger.trace('onSocketReady');
 		this.dispatchTypedEvent('open', new OpenEvent());
 	};
 
 	protected onSocketTimeout = () => {
+		logger.warning('onSocketTimeout');
 		this.dispatchTypedEvent('error', new ErrorEvent(new Error('Socket timeout')));
 	};
 }

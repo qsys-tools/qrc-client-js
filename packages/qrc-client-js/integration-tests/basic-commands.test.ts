@@ -3,12 +3,12 @@ import {Socket} from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import type EventEmitter from 'node:events';
+import {configure, getConsoleSink} from '@logtape/logtape';
 import ava, {type ExecutionContext, type SerialFn} from 'ava'; // eslint-disable-line ava/use-test
 import delay from 'delay';
 import isCI from 'is-ci';
 import {pEvent} from 'p-event';
-import {WebSocket} from 'ws';
+import {WebSocket as NodeWebSocket} from 'ws';
 import {v4 as uuidV4} from 'uuid';
 import {SocketChannel, WebsocketChannel, type CommunicationChannel} from '@qsys-tools/json-rpc-channel';
 import QrcClient, {ZodValidator} from '../src/index.ts';
@@ -23,6 +23,15 @@ import {
 	destroyGroup,
 	removeNamedControlsFromGroup,
 } from '../src/commands.ts';
+
+if (process.env.DEBUG) {
+	await configure({
+		sinks: {console: getConsoleSink()},
+		loggers: [{
+			category: 'qsys-tools', lowestLevel: 'debug', sinks: ['console'],
+		}],
+	});
+}
 
 // @ts-expect-error Just making `.only` work for local testing
 const test: SerialFn = isCI ? ava.serial.skip : ava.serial;
@@ -57,17 +66,22 @@ const getUniqueGroupId = () => {
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
 	const {title} = t;
 
-	let channel: CommunicationChannel & EventEmitter;
+	let channel: CommunicationChannel;
 
 	if (USE_WEBSOCKET) {
-		const websocket = new WebSocket(`ws://${connectionInfo.host}:${connectionInfo.port}/qrc-public-api/v0`);
-		const wsChannel = new WebsocketChannel(websocket);
+		const wsChannel = new WebsocketChannel(
+			`ws://${connectionInfo.host}:${connectionInfo.port}/qrc-public-api/v0`,
+			null,
+			{
+				WebSocket: NodeWebSocket,
+			},
+		);
 		channel = wsChannel;
 	} else {
 		const socket = new Socket();
 		const socketChannel = new SocketChannel(socket, connectionInfo);
 
-		socketChannel.on('error', error => {
+		socketChannel.addEventListener('error', ({error}) => {
 			console.error(`Error in ${title}`);
 			console.error(error);
 			t.fail(`Error was thrown in ${title}: ${String(error)}`);
@@ -81,7 +95,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 		channel,
 	});
 
-	const connectEvent = pEvent(channel, 'connect');
+	const connectEvent = pEvent(channel, 'open');
 	const closeEvent = pEvent(channel, 'close');
 
 	channel.connect();
@@ -92,7 +106,7 @@ const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, clie
 		await Promise.all(groupIds.map(async id => client.send(destroyGroup(id))));
 		groupIds.splice(0);
 		await delay(200);
-		channel.end();
+		channel.close();
 		await closeEvent;
 	});
 	await run(t, client);

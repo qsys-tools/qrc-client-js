@@ -1,9 +1,12 @@
-$schema: './cache/schemas/tasks.json'
+$schema: '../cache/schemas/tasks.json'
 
 taskOptions:
   # Incremental cache key to invalidate all caches when needed.
   cacheKey: '1'
   outputStyle: buffer-only-failure
+
+implicitInputs:
+  - '$DEBUG'
 
 tasks:
   clean:

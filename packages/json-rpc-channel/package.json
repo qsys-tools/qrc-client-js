@@ -42,6 +42,8 @@
 		"client"
 	],
 	"dependencies": {
+		"@logtape/logtape": "catalog:",
+		"debug": "catalog:",
 		"partysocket": "catalog:",
 		"pump": "catalog:",
 		"split2": "catalog:",
@@ -80,7 +82,11 @@
 				"**"
 			],
 			"rules": {
-				"@typescript-eslint/naming-convention": "off"
+				"@typescript-eslint/naming-convention": "off",
+				"@stylistic/quote-props": [
+					"error",
+					"consistent-as-needed"
+				]
 			}
 		}
 	]

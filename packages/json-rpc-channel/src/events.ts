@@ -19,9 +19,9 @@ export type IJsonRpcMessageEvent = Event & {
 };
 
 export type CommunicationChannelEventMap = {
-	open: Event;
-	close: CloseEvent;
-	error: ErrorEvent;
+	'open': Event;
+	'close': CloseEvent;
+	'error': ErrorEvent;
 	'json-rpc-message': IJsonRpcMessageEvent;
 };
 

@@ -9,6 +9,7 @@ cleanupUnusedCatalogs: true
 overrides:
   typescript: $typescript
 catalog:
+  '@logtape/logtape': ^2.1.1
   '@swc/core': ^1.15.33
   "@types/is-ci": ^3.0.4
   "@types/node": ^25.9.1
@@ -20,6 +21,7 @@ catalog:
   any-observable: ^0.6.0
   ava: ^8.0.0
   c8: ^11.0.0
+  debug: ^4.4.3
   del-cli: ^7.0.0
   delay: ^7.0.0
   eslint: ^10.3.0

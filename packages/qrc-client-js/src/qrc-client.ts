@@ -2,8 +2,8 @@
 import EventEmitter from 'node:events';
 import type {
 	CommunicationChannel,
-	JsonRpcMessage,
 	JsonRpcRequest,
+	IJsonRpcMessageEvent,
 } from '@qsys-tools/json-rpc-channel';
 import {type PartialQrcCommand} from './commands.ts';
 import UidMap from './lib/uid-map.ts';
@@ -26,7 +26,7 @@ type SendArgs<M extends QrcMethod>
 	);
 
 export type QrcClientOptions = {
-	channel: CommunicationChannel & EventEmitter;
+	channel: CommunicationChannel;
 	validator?: Validator;
 };
 
@@ -35,7 +35,7 @@ type ResolversWithMethod = PromiseWithResolvers<any> & {method: QrcMethod};
 export default class QrcClient {
 	readonly validator: Validator;
 
-	readonly channel: CommunicationChannel & EventEmitter;
+	readonly channel: CommunicationChannel;
 	readonly channelUnsub: () => void;
 
 	private readonly _map = new UidMap<ResolversWithMethod>();
@@ -46,7 +46,11 @@ export default class QrcClient {
 	constructor({validator = noopValidator, channel}: QrcClientOptions) {
 		this.validator = validator;
 		this.channel = channel;
-		this.channelUnsub = channel.subscribe(this._data);
+		this.channel.addEventListener('json-rpc-message', this._data);
+		this.channelUnsub = () => {
+			this.channel.removeEventListener('json-rpc-message', this._data);
+		};
+
 		this.requestHandlers.on('ChangeGroup.Poll', this.handleChangeGroupPoll);
 	}
 
@@ -88,7 +92,8 @@ export default class QrcClient {
 		return pollGroup;
 	}
 
-	private readonly _data = (message: JsonRpcMessage) => {
+	private readonly _data = (event: IJsonRpcMessageEvent) => {
+		const {message} = event;
 		if ('result' in message || 'error' in message || ('id' in message && this._map.looseHas(message.id))) {
 			if (typeof message.id !== 'string') {
 				console.warn(`Received a non-string Id: ${message.id}... Which doesn't make sense. `);

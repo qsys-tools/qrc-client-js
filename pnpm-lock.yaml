@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@logtape/logtape':
+      specifier: ^2.1.1
+      version: 2.1.1
     '@swc/core':
       specifier: ^1.15.33
       version: 1.15.33
@@ -39,6 +42,9 @@ catalogs:
     c8:
       specifier: ^11.0.0
       version: 11.0.0
+    debug:
+      specifier: ^4.4.3
+      version: 4.4.3
     del-cli:
       specifier: ^7.0.0
       version: 7.0.0
@@ -144,6 +150,12 @@ importers:
 
   packages/json-rpc-channel:
     dependencies:
+      '@logtape/logtape':
+        specifier: 'catalog:'
+        version: 2.1.1
+      debug:
+        specifier: 'catalog:'
+        version: 4.4.3(supports-color@10.2.2)
       partysocket:
         specifier: 'catalog:'
         version: 1.1.19
@@ -211,6 +223,9 @@ importers:
 
   packages/qrc-client-js:
     dependencies:
+      '@logtape/logtape':
+        specifier: 'catalog:'
+        version: 2.1.1
       '@qsys-tools/json-rpc-channel':
         specifier: workspace:*
         version: link:../json-rpc-channel
@@ -487,6 +502,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@logtape/logtape@2.1.1':
+    resolution: {integrity: sha512-aULbCqUQGerfOsZ3CMvcKtueKzmdchluXYUd3bIHKmOIS93fx1ko0+hyRQ4flloGZ8EiyRPydZXiy8n1J/eAQA==}
 
   '@mapbox/node-pre-gyp@2.0.3':
     resolution: {integrity: sha512-uwPAhccfFJlsfCxMYTwOdVfOz3xqyj8xYL3zJj8f0pb30tLohnnFPhLuqp4/qoEz8sNxe4SESZedcBojRefIzg==}
@@ -3552,6 +3570,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@logtape/logtape@2.1.1': {}
 
   '@mapbox/node-pre-gyp@2.0.3(supports-color@10.2.2)':
     dependencies:

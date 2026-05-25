@@ -22,7 +22,7 @@ const connectionInfo: {host: string; port: number} = JSON.parse(connectionJSON);
 const socket = new Socket();
 const channel = new SocketChannel(socket, connectionInfo);
 const client = new QrcClient({channel});
-channel.on('error', error => {
+channel.addEventListener('error', ({error}) => {
 	console.error(error);
 });
 

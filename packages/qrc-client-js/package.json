@@ -34,6 +34,7 @@
 		"client"
 	],
 	"dependencies": {
+		"@logtape/logtape": "catalog:",
 		"@qsys-tools/json-rpc-channel": "workspace:*",
 		"any-observable": "catalog:",
 		"supports-color": "catalog:",
