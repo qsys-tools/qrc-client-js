@@ -1,9 +1,8 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
 	test: {
 		globals: true,
-		// environment: 'happy-dom',
 		include: ['*.test.ts', 'test/**/*.test.ts', 'src/**/*.test.ts'],
 		coverage: {
 			reporter: ['raw'],
@@ -11,7 +10,7 @@ export default defineConfig({
 			reportsDirectory: '../../.moon/cache/coverage/packages/json-rpc-channel',
 			reportOnFailure: true,
 			provider: 'custom',
-			customProviderModule: 'vitest-monocart-coverage'
+			customProviderModule: 'vitest-monocart-coverage',
 		},
 	},
 });

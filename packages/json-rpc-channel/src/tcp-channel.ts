@@ -1,4 +1,4 @@
-// import type {CommunicationChannel} from './communication-channel.ts';
+// Import type {CommunicationChannel} from './communication-channel.ts';
 
 export type Options = {
 	maxReconnectionDelay?: number;
@@ -13,6 +13,6 @@ export type Options = {
 };
 
 /**
-export class TcpChannel extends EventTarget implements CommunicationChannel {
+Export class TcpChannel extends EventTarget implements CommunicationChannel {
 
-}*/
+} */

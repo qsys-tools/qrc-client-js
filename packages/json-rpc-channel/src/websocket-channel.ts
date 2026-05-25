@@ -1,4 +1,5 @@
-import {WebSocket} from 'partysocket';
+import {TypedEventTarget} from 'typescript-event-target';
+import RetryWebsocket from './retry-websocket/retry-websocket.ts';
 import type {JsonRpcMessage} from './json-rpc.ts';
 import {
 	OpenEvent,
@@ -8,6 +9,7 @@ import {
 	type IOpenEvent,
 	type ICloseEvent,
 	type IErrorEvent,
+	type CommunicationChannelEventMap,
 } from './events.ts';
 import type {CommunicationChannel} from './communication-channel.ts';
 
@@ -36,13 +38,13 @@ export type ProtocolsProvider
 	// eslint-disable-next-line @typescript-eslint/no-restricted-types
 		| (() => Promise<string | string[] | null>);
 
-export class WebsocketChannel extends EventTarget implements CommunicationChannel {
+export class WebsocketChannel extends TypedEventTarget<CommunicationChannelEventMap> implements CommunicationChannel {
 	protected readonly socket;
 
 	constructor(url: UrlProvider, protocols?: ProtocolsProvider, options: Options = {}) {
 		super();
 
-		this.socket = new WebSocket(url, protocols, {...options, startClosed: true});
+		this.socket = new RetryWebsocket(url, protocols, {...options, startClosed: true});
 		this.socket.addEventListener('open', this.onSocketOpen);
 		this.socket.addEventListener('close', this.onSocketClose);
 		this.socket.addEventListener('error', this.onSocketError);
@@ -62,19 +64,19 @@ export class WebsocketChannel extends EventTarget implements CommunicationChanne
 	}
 
 	protected onSocketOpen = (_event: IOpenEvent) => {
-		this.dispatchEvent(new OpenEvent());
+		this.dispatchTypedEvent('open', new OpenEvent());
 	};
 
 	protected onSocketClose = (event: ICloseEvent) => {
-		this.dispatchEvent(new CloseEvent(event.code, event.reason, event.wasClean));
+		this.dispatchTypedEvent('close', new CloseEvent(event.code, event.reason, event.wasClean));
 	};
 
 	protected onSocketMessage = (event: MessageEvent) => {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-		this.dispatchEvent(new JsonRpcMessageEvent(JSON.parse(event.data.toString()) as JsonRpcMessage));
+		this.dispatchTypedEvent('json-rpc-message', new JsonRpcMessageEvent(JSON.parse(event.data.toString()) as JsonRpcMessage));
 	};
 
 	protected onSocketError = (event: IErrorEvent) => {
-		this.dispatchEvent(new ErrorEvent(event.error, event.message));
+		this.dispatchTypedEvent('error', new ErrorEvent(event.error, event.message));
 	};
 }
