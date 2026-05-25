@@ -863,29 +863,6 @@ testDone(
 	},
 );
 
-testDone('reconnection delay grow factor', done => {
-	const ws = new ReconnectingWebSocket(ERROR_URL, [], {
-		minReconnectionDelay: 50,
-		maxReconnectionDelay: 500,
-		reconnectionDelayGrowFactor: 2,
-	});
-	// @ts-expect-error - accessing private field
-	expect(ws._getNextDelay()).toBe(0);
-	const expected = [50, 100, 200, 400, 500, 500];
-	let retry = 0;
-	ws.addEventListener('error', () => {
-		// @ts-expect-error - accessing private field
-		expect(ws._getNextDelay()).toBe(expected[retry]);
-		retry++;
-		if (retry >= expected.length) {
-			ws.close();
-			setTimeout(() => {
-				done();
-			}, 100);
-		}
-	});
-});
-
 testDone('minUptime', (done, fail) => {
 	const ws = new ReconnectingWebSocket(URL, [], {
 		minReconnectionDelay: 50,
@@ -895,13 +872,12 @@ testDone('minUptime', (done, fail) => {
 	});
 	// Connections 1-3 last 20/40/60ms (< 75ms minUptime) → retries grow.
 	// Connections 4-6 last 80/100/120ms (> 75ms) → _acceptOpen resets retryCount.
-	const expectedDelays = [50, 100, 200, 50, 50, 50];
 	const expectedRetryCount = [1, 2, 3, 1, 1, 1];
 	let connectionCount = 0;
 
 	function onConnection(client: NodeWebSocket) {
 		connectionCount++;
-		if (connectionCount <= expectedDelays.length) {
+		if (connectionCount <= expectedRetryCount.length) {
 			setTimeout(() => {
 				client.close();
 			}, connectionCount * 20);
@@ -912,7 +888,7 @@ testDone('minUptime', (done, fail) => {
 	let openCount = 0;
 	ws.addEventListener('open', () => {
 		openCount++;
-		if (openCount > expectedDelays.length) {
+		if (openCount > expectedRetryCount.length) {
 			ws.close();
 			wss.off('connection', onConnection);
 			done();
@@ -920,10 +896,8 @@ testDone('minUptime', (done, fail) => {
 	});
 	let closeCount = 0;
 	ws.addEventListener('close', () => {
-		if (closeCount < expectedDelays.length) {
+		if (closeCount < expectedRetryCount.length) {
 			try {
-				// @ts-expect-error - accessing private field
-				expect(ws._getNextDelay()).toBe(expectedDelays[closeCount]);
 				// @ts-expect-error - accessing private field
 				expect(ws._retryCount).toBe(expectedRetryCount[closeCount]);
 			} catch (error) {

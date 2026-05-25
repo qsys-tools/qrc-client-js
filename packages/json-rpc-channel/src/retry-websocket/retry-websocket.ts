@@ -298,15 +298,11 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 		}
 	}
 
-	private _getNextDelay() {
-		const delay = getNextDelay(this._retryCount, this._options);
-		this._debug('next delay', delay);
-		return delay;
-	}
-
 	private async _wait(): Promise<void> {
 		return new Promise(resolve => {
-			setTimeout(resolve, this._getNextDelay());
+			const delay = getNextDelay(this._retryCount, this._options);
+			this._debug(`waiting for ${delay}`);
+			setTimeout(resolve, delay);
 		});
 	}
 
