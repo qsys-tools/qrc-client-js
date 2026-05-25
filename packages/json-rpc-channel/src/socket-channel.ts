@@ -1,12 +1,8 @@
 import type {Socket} from 'node:net';
-import type {Readable, Writable} from 'node:stream';
 import {getLogger} from '@logtape/logtape';
-import pump from 'pump';
 import {TypedEventTarget} from 'typescript-event-target';
 import type {JsonRpcMessage} from './json-rpc.ts';
-import {
-	nullJsonDecoder, nullJsonEncoder, rpcNoOpTimeout,
-} from './stream-transforms.ts';
+import {buildDuplexStream} from './stream-transforms.ts';
 import type {CommunicationChannel} from './communication-channel.ts';
 import {
 	type CommunicationChannelEventMap, OpenEvent, CloseEvent, ErrorEvent, JsonRpcMessageEvent,
@@ -20,9 +16,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 	protected finished = false;
 	protected errors: Error[] = [];
 
-	private readonly readStream: Readable;
-
-	private readonly writeStream: Writable;
+	private readonly stream: ReturnType<typeof buildDuplexStream>;
 
 	private readonly socket: Socket;
 
@@ -41,19 +35,8 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 
 		this.addEventListener('error', destroyHandler);
 
-		this.readStream = this.buildReadStream(
-			socket,
-			error => {
-				this.finish('write', error);
-			},
-		);
-		this.writeStream = this.buildWriteStream(
-			socket,
-			error => {
-				this.finish('read', error);
-			},
-		);
-		this.readStream.on('data', this.onJsonMessage);
+		this.stream = buildDuplexStream(socket, this.finish);
+		this.stream.on('data', this.onJsonMessage);
 	}
 
 	connect() {
@@ -63,49 +46,22 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 
 	send(message: JsonRpcMessage) {
 		logger.trace('send {*}', message);
-		this.writeStream.write(message);
+		this.stream.write(message);
 	}
 
 	close() {
-		this.end();
+		logger.trace('end');
+		this.stream.end();
 	}
 
 	destroy = (error?: Error) => {
 		this.socket.destroy(error);
-		this.readStream.destroy(error);
-		this.writeStream.destroy(error);
+		this.stream.destroy(error);
 		this.detachSocketListeners(this.socket);
 	};
 
-	end = () => {
-		logger.trace('end');
-		this.socket.end();
-	};
-
-	protected buildReadStream(socket: Socket, finish: (error: Error | undefined) => void): Readable {
-		const readStream = nullJsonDecoder();
-
-		pump(
-			socket,
-			readStream,
-			finish,
-		);
-
-		return readStream;
-	}
-
-	protected buildWriteStream(socket: Socket, finish: (error: Error | undefined) => void): Writable {
-		const writeStream = rpcNoOpTimeout();
-		pump(
-			writeStream,
-			nullJsonEncoder(),
-			socket,
-			finish,
-		);
-		return writeStream;
-	}
-
-	protected finish(_stream: 'read' | 'write', error: Error | undefined) {
+	// eslint-disable-next-line @typescript-eslint/no-restricted-types
+	protected finish = (_stream: 'read' | 'write', error: Error | null) => {
 		// TODO: Implement DEBUG Logging. console.warn(`finish on ${stream} stream: ${error ?? 'no error'}`);
 		if (error && !this.errors.includes(error)) {
 			this.errors.push(error);
@@ -118,7 +74,7 @@ export class SocketChannel extends TypedEventTarget<CommunicationChannelEventMap
 
 		this.finished = true;
 		this.dispatchTypedEvent('close', new CloseEvent(1000, 'some reason', !error));
-	}
+	};
 
 	protected attachSocketListeners(socket: Socket) {
 		socket.addListener('close', this.onSocketClose);

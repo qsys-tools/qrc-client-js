@@ -130,4 +130,4 @@ for (const [key, types] of shapeKeyTypes) {
 
 console.log(`\n\n ${JSON.stringify(shapeKeyDescription, null, 2)}`);
 
-channel.end();
+channel.close();

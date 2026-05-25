@@ -52,6 +52,7 @@
 		"ws": "catalog:"
 	},
 	"devDependencies": {
+		"@types/duplexify": "catalog:",
 		"@types/node": "catalog:",
 		"@types/pump": "catalog:",
 		"@types/readable-stream": "catalog:",
@@ -59,6 +60,7 @@
 		"@types/ws": "catalog:",
 		"ava": "catalog:",
 		"c8": "catalog:",
+		"duplexify": "catalog:",
 		"eslint": "catalog:",
 		"make-dir": "catalog:",
 		"p-event": "catalog:",

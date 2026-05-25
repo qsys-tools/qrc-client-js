@@ -24,13 +24,15 @@ import {
 	removeNamedControlsFromGroup,
 } from '../src/commands.ts';
 
+let logsetup = Promise.resolve();
 if (process.env.DEBUG) {
-	await configure({
+	logsetup = configure({
 		sinks: {console: getConsoleSink()},
 		loggers: [{
-			category: 'qsys-tools', lowestLevel: 'debug', sinks: ['console'],
+			category: 'qsys-tools', lowestLevel: 'trace', sinks: ['console'],
 		}],
-	});
+		// eslint-disable-next-line unicorn/prefer-top-level-await
+	}).then(async () => delay(200));
 }
 
 // @ts-expect-error Just making `.only` work for local testing
@@ -64,6 +66,7 @@ const getUniqueGroupId = () => {
 };
 
 const withEmulator = async (t: ExecutionContext, run: (t: ExecutionContext, client: QrcClient) => unknown): Promise<any> => {
+	await logsetup;
 	const {title} = t;
 
 	let channel: CommunicationChannel;
