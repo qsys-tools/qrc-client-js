@@ -1,4 +1,5 @@
 import type {Reconnectable} from './reconnect-manager.ts';
+import type {WebSocketEventMap} from './websocket-events.ts';
 
 export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
 
@@ -21,7 +22,7 @@ export type WsMessageData
 export type WsReconnectable = Reconnectable<
 	WebSocket,
 	WsMessageData,
-	WsMessageData,
+	WebSocketEventMap,
 	// eslint-disable-next-line @typescript-eslint/no-restricted-types
 	[url: string, protocols: string | string[] | null]
 >;
@@ -60,36 +61,17 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 		},
 
 		attachListeners(channel, {open, close, message, error}) {
-			const messageListener = (event: MessageEvent<WsMessageData>) => {
-				message(event.data);
-			};
-
-			const errorListener = (event: Event) => {
-				if ('error' in event && event.error instanceof Error) {
-					error(event.error);
-				}
-
-				const message = 'message' in event ? event.message : ('reason' in event ? event.reason : event);
-
-				// eslint-disable-next-line @typescript-eslint/no-base-to-string
-				const errorInstance = new Error(typeof message === 'string' ? message : String(event));
-
-				if (typeof Error.captureStackTrace === 'function') {
-					Error.captureStackTrace(errorInstance);
-				}
-
-				error(errorInstance);
-			};
-
-			channel.addEventListener('message', messageListener);
+			channel.addEventListener('message', message);
 			channel.addEventListener('close', close);
-			channel.addEventListener('error', errorListener);
+			// @ts-expect-error It works
+			channel.addEventListener('error', error);
 			channel.addEventListener('open', open);
 
 			return () => {
-				channel.removeEventListener('message', messageListener);
+				channel.removeEventListener('message', message);
 				channel.removeEventListener('close', close);
-				channel.removeEventListener('error', errorListener);
+				// @ts-expect-error It works
+				channel.removeEventListener('error', error);
 				channel.removeEventListener('open', open);
 			};
 		},

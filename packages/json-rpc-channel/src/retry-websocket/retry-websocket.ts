@@ -56,6 +56,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 	protected _options: Options;
 
 	private _ws: WebSocket | undefined;
+	private _unsub: undefined | (() => void);
 	private _retryCount = -1;
 	private _uptimeTimeout: ReturnType<typeof setTimeout> | undefined;
 	private _connectTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -456,11 +457,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 		}
 
 		this._debug('removeListeners');
-		this._ws.removeEventListener('open', this._handleOpen);
-		this._ws.removeEventListener('close', this._handleClose);
-		this._ws.removeEventListener('message', this._handleMessage);
-		// @ts-expect-error we need to fix event/listerner types
-		this._ws.removeEventListener('error', this._handleError);
+		this._unsub!();
 	}
 
 	private _addListeners() {
@@ -469,11 +466,12 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 		}
 
 		this._debug('addListeners');
-		this._ws.addEventListener('open', this._handleOpen);
-		this._ws.addEventListener('close', this._handleClose);
-		this._ws.addEventListener('message', this._handleMessage);
-		// @ts-expect-error we need to fix event/listener types
-		this._ws.addEventListener('error', this._handleError);
+		this._unsub = this._wsRc.attachListeners(this._ws, {
+			open: this._handleOpen,
+			close: this._handleClose,
+			message: this._handleMessage,
+			error: this._handleError,
+		});
 	}
 
 	private _clearTimeouts() {

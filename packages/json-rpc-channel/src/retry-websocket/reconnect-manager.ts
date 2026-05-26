@@ -7,17 +7,17 @@ export const enum ReconnectState {
 	IDLE = 5,
 }
 
-type ReconnectableListeners<Message> = {
-	open: () => void;
-	close: () => void;
-	error: (error: Error) => void;
-	message: (event: Message) => void;
+export type RcEventNames = 'open' | 'close' | 'error' | 'message';
+export type ReconnectableEventMap = Record<RcEventNames, Event>;
+
+type ReconnectableListeners<Map extends ReconnectableEventMap> = {
+	[K in RcEventNames]: (event: Map[K]) => void;
 };
 
-export type Reconnectable<Channel, ReceiveMessage, SendMessage = ReceiveMessage, CreateArgs = unknown, ConnectArgs = unknown> = {
+export type Reconnectable<Channel, SendMessage, EventMap extends ReconnectableEventMap, CreateArgs = unknown, ConnectArgs = unknown> = {
 	makeCreateArgs: () => Promise<CreateArgs> | CreateArgs;
 	createChannel: (createArgs: CreateArgs, lastChannel?: Channel) => Channel;
-	attachListeners: (channel: Channel, listeners: ReconnectableListeners<ReceiveMessage>) => () => void;
+	attachListeners: (channel: Channel, listeners: ReconnectableListeners<EventMap>) => () => void;
 	closeChannel: (channel: Channel) => void;
 	send: (channel: Channel, message: SendMessage) => void;
 } & ({
