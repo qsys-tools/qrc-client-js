@@ -243,7 +243,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 			return;
 		}
 
-		this._ws.close(code, reason);
+		this._wsRc.closeChannel(this._ws, code, reason);
 	}
 
 	/**
@@ -324,8 +324,8 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 					return;
 				}
 
-				this._ws = this._wsRc.createChannel(createArgs);
-				this._debug('connect', createArgs);
+				this._ws = this._wsRc.createChannel(...createArgs);
+				this._debug('connect', ...createArgs);
 				this._ws.binaryType = this._binaryType;
 				this._connectLock = false;
 				this._addListeners();
@@ -368,7 +368,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 				this._ws.readyState === this.OPEN
 				|| this._ws.readyState === this.CONNECTING
 			) {
-				this._ws.close(code, reason);
+				this._wsRc.closeChannel(this._ws, code, reason);
 			}
 
 			this._handleClose(new WsEvents.CloseEvent(code, reason, true));

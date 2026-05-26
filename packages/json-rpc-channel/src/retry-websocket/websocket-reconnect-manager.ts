@@ -23,8 +23,13 @@ export type WsReconnectable = Reconnectable<
 	WebSocket,
 	WsMessageData,
 	WebSocketEventMap,
-	// eslint-disable-next-line @typescript-eslint/no-restricted-types
-	[url: string, protocols: string | string[] | null]
+	{
+		// eslint-disable-next-line @typescript-eslint/no-restricted-types
+		create: [url: string, protocols: string | string[] | null | undefined];
+		// eslint-disable-next-line @typescript-eslint/no-restricted-types
+		connect: [];
+		close: [code: number | undefined, reason: string | undefined];
+	}
 >;
 
 export async function getNextUrl(url: UrlProvider) {
@@ -56,8 +61,8 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 	return {
 		connectsAtCreation: true,
 
-		closeChannel(channel: WebSocket): void {
-			channel.close();
+		closeChannel(channel, code = 1000, reason = 'unknown reason'): void {
+			channel.close(code, reason);
 		},
 
 		attachListeners(channel, {open, close, message, error}) {
@@ -80,7 +85,7 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 			return Promise.all([getNextUrl(url), getNextProtocols(protocols)]);
 		},
 
-		createChannel([url, protocols]) {
+		createChannel(url, protocols?) {
 			if (!WS && typeof WebSocket === 'undefined' && !didWarnAboutMissingWebSocket) {
 				console.error('‼️ No WebSocket implementation available. You should define options.WebSocket.');
 				didWarnAboutMissingWebSocket = true;

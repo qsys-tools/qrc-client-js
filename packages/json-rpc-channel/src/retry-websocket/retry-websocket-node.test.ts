@@ -63,7 +63,7 @@ test('throws with invalid constructor', () => {
 	expect(() => {
 		// @ts-expect-error That's what we're testing
 		const wsRc = wsReconnectable(URL, undefined, 123);
-		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
+		wsRc.createChannel(`ws://localhost:${PORT}/`);
 	}).toThrow();
 });
 
@@ -72,7 +72,7 @@ test('throws with missing constructor', () => {
 	delete globalThis.WebSocket;
 	expect(() => {
 		const wsRc = wsReconnectable(URL, undefined);
-		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
+		wsRc.createChannel(`ws://localhost:${PORT}/`);
 	}).toThrow();
 });
 
@@ -81,7 +81,7 @@ test('throws with non-constructor object', () => {
 	globalThis.WebSocket = {};
 	expect(() => {
 		const wsRc = wsReconnectable(URL, undefined);
-		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
+		wsRc.createChannel(`ws://localhost:${PORT}/`);
 	}).toThrow();
 });
 
@@ -91,7 +91,7 @@ test('will allow ws to be created', () => {
 	expect(() => {
 		// @ts-expect-error - Fix this
 		const wsRc = wsReconnectable(URL, undefined, NodeWebSocket);
-		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
+		wsRc.createChannel(`ws://localhost:${PORT}/`, null);
 	}).not.toThrow();
 });
 
