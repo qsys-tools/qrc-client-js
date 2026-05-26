@@ -1,6 +1,6 @@
 import type {Reconnectable} from './reconnect-manager.ts';
 
-export type UrlProvider = string | (() => string) | (() => Promise<string>);
+export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
 
 export type ProtocolsProvider
 	// eslint-disable-next-line @typescript-eslint/no-restricted-types
@@ -18,7 +18,7 @@ export type WsMessageData
 		| Blob
 		| ArrayBufferView<ArrayBuffer>;
 
-type WsReconnectable = Reconnectable<
+export type WsReconnectable = Reconnectable<
 	WebSocket,
 	WsMessageData,
 	WsMessageData,
@@ -26,13 +26,30 @@ type WsReconnectable = Reconnectable<
 	[url: string, protocols: string | string[] | null]
 >;
 
-export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider = null) => {
-	async function getUrl() {
-		return typeof url === 'function' ? url() : url;
+export async function getNextUrl(url: UrlProvider) {
+	const result = await (typeof url === 'function' ? url() : url);
+
+	if (typeof result !== 'string') {
+		throw new TypeError(`Url Provider returned ${typeof result}`);
 	}
 
-	async function getProtocols() {
-		return typeof protocols === 'function' ? protocols() : protocols;
+	return result;
+}
+
+export async function getNextProtocols(protocols: ProtocolsProvider) {
+	const result = await (typeof protocols === 'function' ? protocols() : protocols);
+	if (typeof result !== 'string' && !Array.isArray(result) && result !== null) {
+		throw new TypeError(`Protocols Provider returned ${typeof result}`);
+	}
+
+	return result;
+}
+
+let didWarnAboutMissingWebSocket = false;
+
+export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider = null, WS?: typeof WebSocket) => {
+	if (typeof url !== 'string' && typeof url !== 'function' && !(('then' in url) && (typeof url.then === 'function'))) {
+		throw new TypeError('url needs to be a string, a promise for a string, or a function that returns one of those');
 	}
 
 	return {
@@ -78,11 +95,17 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 		},
 
 		async makeCreateArgs() {
-			return Promise.all([getUrl(), getProtocols()]);
+			return Promise.all([getNextUrl(url), getNextProtocols(protocols)]);
 		},
 
 		createChannel([url, protocols]) {
-			return protocols ? new WebSocket(url, protocols) : new WebSocket(url);
+			if (!WS && typeof WebSocket === 'undefined' && !didWarnAboutMissingWebSocket) {
+				console.error('‼️ No WebSocket implementation available. You should define options.WebSocket.');
+				didWarnAboutMissingWebSocket = true;
+			}
+
+			const WSC = WS ?? WebSocket;
+			return protocols ? new WSC(url, protocols) : new WSC(url);
 		},
 
 		send(channel, message) {

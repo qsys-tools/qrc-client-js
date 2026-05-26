@@ -12,6 +12,7 @@ import {
 } from 'vitest';
 import NodeWebSocket, {WebSocketServer, type Server} from 'ws';
 import ReconnectingWebSocket from './retry-websocket.ts';
+import {wsReconnectable} from './websocket-reconnect-manager.ts';
 
 const PORT = 50_122;
 const URL = `ws://localhost:${PORT}/`;
@@ -60,14 +61,9 @@ test('throws with invalid constructor', () => {
 	// @ts-expect-error We're doing it anyway
 	delete globalThis.WebSocket;
 	expect(() => {
-		const ws = new ReconnectingWebSocket(URL, undefined, {
-			WebSocket: 123,
-			maxRetries: 0,
-			startClosed: true,
-		});
-
-		// @ts-expect-error private member access
-		ws._constructWs(`ws://localhost:${PORT}/`);
+		// @ts-expect-error That's what we're testing
+		const wsRc = wsReconnectable(URL, undefined, 123);
+		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
 	}).toThrow();
 });
 
@@ -75,9 +71,8 @@ test('throws with missing constructor', () => {
 	// @ts-expect-error We're doing it anyway
 	delete globalThis.WebSocket;
 	expect(() => {
-		const ws = new ReconnectingWebSocket(URL, undefined, {maxRetries: 0});
-		// @ts-expect-error private member access
-		ws._constructWs(`ws://localhost:${PORT}/`);
+		const wsRc = wsReconnectable(URL, undefined);
+		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
 	}).toThrow();
 });
 
@@ -85,9 +80,8 @@ test('throws with non-constructor object', () => {
 	// @ts-expect-error We're doing it anyway
 	globalThis.WebSocket = {};
 	expect(() => {
-		const ws = new ReconnectingWebSocket(URL, undefined, {maxRetries: 0});
-		// @ts-expect-error private member access
-		ws._constructWs(`ws://localhost:${PORT}/`);
+		const wsRc = wsReconnectable(URL, undefined);
+		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
 	}).toThrow();
 });
 
@@ -95,9 +89,9 @@ test('will allow ws to be created', () => {
 	// @ts-expect-error We're doing it anyway
 	globalThis.WebSocket = {};
 	expect(() => {
-		const ws = new ReconnectingWebSocket(URL, undefined, {maxRetries: 0, WebSocket: NodeWebSocket});
-		// @ts-expect-error private member access
-		ws._constructWs(`ws://localhost:${PORT}/`);
+		// @ts-expect-error - Fix this
+		const wsRc = wsReconnectable(URL, undefined, NodeWebSocket);
+		wsRc.createChannel([`ws://localhost:${PORT}/`, null]);
 	}).not.toThrow();
 });
 

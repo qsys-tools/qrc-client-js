@@ -14,7 +14,9 @@ import {
 } from './websocket-events.ts';
 import {getNextDelay} from './retry-delay.ts';
 import {cloneWsEvent} from './clone-ws-event.ts';
-import {type UrlProvider, type ProtocolsProvider, type WsMessageData} from './websocket-reconnect-manager.ts';
+import {
+	type UrlProvider, type ProtocolsProvider, type WsMessageData, wsReconnectable, type WsReconnectable,
+} from './websocket-reconnect-manager.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
 	throw new Error('No globalThis.EventTarget / globalThis.Event');
@@ -49,11 +51,8 @@ const DEFAULT = {
 	debug: false,
 };
 
-let didWarnAboutMissingWebSocket = false;
-
 export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEventMap> {
-	protected _url: UrlProvider;
-	protected _protocols?: ProtocolsProvider;
+	protected _wsRc: WsReconnectable;
 	protected _options: Options;
 
 	private _ws: WebSocket | undefined;
@@ -74,8 +73,8 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 		options: Options = {},
 	) {
 		super();
-		this._url = url;
-		this._protocols = protocols;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		this._wsRc = wsReconnectable(url, protocols, options.WebSocket);
 		this._options = options;
 		if (this._options.startClosed) {
 			this._shouldReconnect = false;
@@ -293,55 +292,6 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 		});
 	}
 
-	private _isValidProtocol(protocol: unknown): protocol is string | string[] | null {
-		return protocol === null || typeof protocol === 'string' || Array.isArray(protocol);
-	}
-
-	private async _getNextProtocols(protocolsProvider: ProtocolsProvider) {
-		if (this._isValidProtocol(protocolsProvider)) {
-			return protocolsProvider;
-		}
-
-		if (typeof protocolsProvider === 'function') {
-			const protocols = await protocolsProvider();
-			if (this._isValidProtocol(protocols)) {
-				return protocols;
-			}
-		}
-
-		throw new Error('Invalid protocols');
-	}
-
-	private async _getNextUrl(urlProvider: UrlProvider) {
-		if (typeof urlProvider === 'string') {
-			return urlProvider;
-		}
-
-		if (typeof urlProvider === 'function') {
-			const result = await urlProvider();
-			if (typeof result === 'string') {
-				return result;
-			}
-		}
-
-		throw new TypeError('Invalid UrlProvider');
-	}
-
-	private _constructWs(url: string, protocols: string | string[] | null) {
-		if (
-			!this._options.WebSocket
-			&& typeof WebSocket === 'undefined'
-			&& !didWarnAboutMissingWebSocket
-		) {
-			console.error('‼️ No WebSocket implementation available. You should define options.WebSocket.');
-			didWarnAboutMissingWebSocket = true;
-		}
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const WS: typeof WebSocket = this._options.WebSocket ?? WebSocket;
-		return protocols ? new WS(url, protocols) : new WS(url);
-	}
-
 	private _connect() {
 		if (this._connectLock || !this._shouldReconnect) {
 			return;
@@ -367,17 +317,14 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 
 		this._wait()
 			.then(async () => {
-				const [url, protocols] = await Promise.all([
-					this._getNextUrl(this._url),
-					this._getNextProtocols(this._protocols ?? null),
-				]);
+				const createArgs = await this._wsRc.makeCreateArgs();
 				if (this._closeCalled) {
 					this._connectLock = false;
 					return;
 				}
 
-				this._ws = this._constructWs(url, protocols);
-				this._debug('connect', {url, protocols});
+				this._ws = this._wsRc.createChannel(createArgs);
+				this._debug('connect', createArgs);
 				this._ws.binaryType = this._binaryType;
 				this._connectLock = false;
 				this._addListeners();

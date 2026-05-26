@@ -16,7 +16,7 @@ type ReconnectableListeners<Message> = {
 
 export type Reconnectable<Channel, ReceiveMessage, SendMessage = ReceiveMessage, CreateArgs = unknown, ConnectArgs = unknown> = {
 	makeCreateArgs: () => Promise<CreateArgs> | CreateArgs;
-	createChannel: (createArgs: CreateArgs, lastChannel: Channel) => Channel;
+	createChannel: (createArgs: CreateArgs, lastChannel?: Channel) => Channel;
 	attachListeners: (channel: Channel, listeners: ReconnectableListeners<ReceiveMessage>) => () => void;
 	closeChannel: (channel: Channel) => void;
 	send: (channel: Channel, message: SendMessage) => void;

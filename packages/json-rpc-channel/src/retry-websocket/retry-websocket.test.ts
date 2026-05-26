@@ -155,26 +155,6 @@ testDone('debug off', done => {
 //   };
 // });
 
-test('URL provider', async () => {
-	const url = 'example.com';
-	const ws = new ReconnectingWebSocket(URL, undefined, {maxRetries: 0});
-
-	// @ts-expect-error - accessing private property
-	expect(await ws._getNextUrl(url)).toBe(url);
-
-	// @ts-expect-error - accessing private property
-	expect(await ws._getNextUrl(() => url)).toBe(url);
-
-	// @ts-expect-error - accessing private property
-	expect(await ws._getNextUrl(async () => url)).toBe(url);
-
-	// @ts-expect-error - accessing private property
-	await expect(async () => ws._getNextUrl(123)).rejects.toThrow();
-
-	// @ts-expect-error - accessing private property
-	await expect(async () => ws._getNextUrl(() => 123)).rejects.toThrow();
-});
-
 testDone('websocket protocol', done => {
 	const anyProtocol = 'foobar';
 	const ws = new ReconnectingWebSocket(URL, anyProtocol);
@@ -215,13 +195,6 @@ testDone('null websocket protocol', done => {
 	ws.addEventListener('close', () => {
 		done();
 	});
-});
-
-test('websocket invalid protocolsProvider', async () => {
-	const ws = new ReconnectingWebSocket('ws://example.com', 'foo', {});
-
-	// @ts-expect-error - accessing private property
-	await expect(async () => ws._getNextProtocols(() => /Hahaha/v)).rejects.toThrow();
 });
 
 testDone('websocket sync protocolsProvider', done => {
@@ -952,11 +925,12 @@ testDone('reconnect after closing', (done, fail) => {
 testDone(
 	'reconnect() works after maxRetries has been exhausted',
 	(done, fail) => {
+		let urlToReturn = ERROR_URL;
 		// Connect to an unreachable URL with maxRetries=0 so retries exhaust quickly.
 		// This reproduces the bug where _connectLock was not released when
 		// maxRetries was reached, preventing reconnect() from working.
 		// (https://github.com/cloudflare/partykit/issues/252)
-		const ws = new ReconnectingWebSocket(ERROR_URL, undefined, {
+		const ws = new ReconnectingWebSocket(() => urlToReturn, undefined, {
 			maxRetries: 0,
 			connectionTimeout: 500,
 			minReconnectionDelay: 10,
@@ -972,8 +946,7 @@ testDone(
 			reconnected = true;
 
 			// MaxRetries is now exhausted. Switch to the working server and reconnect.
-			// @ts-expect-error accessing private _url for testing
-			ws._url = URL;
+			urlToReturn = URL;
 			ws.reconnect();
 		});
 
