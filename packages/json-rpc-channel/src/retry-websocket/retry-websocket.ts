@@ -14,6 +14,7 @@ import {
 } from './websocket-events.ts';
 import {getNextDelay} from './retry-delay.ts';
 import {cloneWsEvent} from './clone-ws-event.ts';
+import {type UrlProvider, type ProtocolsProvider, type WsMessageData} from './websocket-reconnect-manager.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
 	throw new Error('No globalThis.EventTarget / globalThis.Event');
@@ -50,20 +51,6 @@ const DEFAULT = {
 
 let didWarnAboutMissingWebSocket = false;
 
-export type UrlProvider = string | (() => string) | (() => Promise<string>);
-export type ProtocolsProvider
-	= | null
-		| string
-		| string[]
-		| (() => string | string[] | null)
-		| (() => Promise<string | string[] | null>);
-
-export type Message
-	= | string
-		| ArrayBuffer
-		| Blob
-		| ArrayBufferView<ArrayBuffer>;
-
 export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEventMap> {
 	protected _url: UrlProvider;
 	protected _protocols?: ProtocolsProvider;
@@ -77,13 +64,13 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 	private _connectLock = false;
 	private _binaryType: BinaryType = 'blob';
 	private _closeCalled = false;
-	private _messageQueue: Message[] = [];
+	private _messageQueue: WsMessageData[] = [];
 
 	private readonly _debugLogger = console.log.bind(console);
 
 	constructor(
 		url: UrlProvider,
-		protocols?: ProtocolsProvider,
+		protocols: ProtocolsProvider = null,
 		options: Options = {},
 	) {
 		super();
@@ -278,7 +265,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 	/**
 	 * Enqueue specified data to be transmitted to the server over the WebSocket connection
 	 */
-	public send(data: Message) {
+	public send(data: WsMessageData) {
 		if (this._ws?.readyState === this.OPEN) {
 			this._debug('send', data);
 			this._ws.send(data);

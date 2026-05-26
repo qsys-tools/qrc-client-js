@@ -1,5 +1,5 @@
 import {TypedEventTarget} from 'typescript-event-target';
-import RetryWebsocket from './retry-websocket/retry-websocket.ts';
+import RetryWebsocket, {type UrlProvider, type ProtocolsProvider} from './retry-websocket/index.ts';
 import type {JsonRpcMessage} from './json-rpc.ts';
 import {
 	CmcEvents,
@@ -23,25 +23,13 @@ export type Options = {
 	debugLogger?: (...args: any[]) => void;
 };
 
-export type UrlProvider = string | (() => string) | (() => Promise<string>);
-
-export type ProtocolsProvider
-	// eslint-disable-next-line @typescript-eslint/no-restricted-types
-	= null
-		| string
-		| string[]
-	// eslint-disable-next-line @typescript-eslint/no-restricted-types
-		| (() => string | string[] | null)
-	// eslint-disable-next-line @typescript-eslint/no-restricted-types
-		| (() => Promise<string | string[] | null>);
-
 export class WebsocketChannel extends TypedEventTarget<CommunicationChannelEventMap> implements CommunicationChannel {
 	protected readonly socket;
 
 	constructor(url: UrlProvider, protocols?: ProtocolsProvider, options: Options = {}) {
 		super();
 
-		this.socket = new RetryWebsocket(url, protocols, {...options, startClosed: true});
+		this.socket = new RetryWebsocket(url, protocols ?? undefined, {...options, startClosed: true});
 		this.socket.addEventListener('open', this.onSocketOpen);
 		this.socket.addEventListener('close', this.onSocketClose);
 		this.socket.addEventListener('error', this.onSocketError);

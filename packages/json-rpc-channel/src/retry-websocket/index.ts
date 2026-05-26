@@ -1,10 +1,13 @@
 export {
-	type Message,
 	type Options as RetryWebSocketOptions,
-	type UrlProvider,
-	type ProtocolsProvider,
 	default,
 } from './retry-websocket.ts';
+
+export {
+	type UrlProvider,
+	type ProtocolsProvider,
+	type WsMessageData,
+} from './websocket-reconnect-manager.ts';
 
 export {
 	type WebsocketEvent,
