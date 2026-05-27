@@ -30,10 +30,13 @@ export type OptionalArgs<T extends unknown[]>
 
 export type Reconnectable<Channel, SendMessage, EventMap extends ReconnectableEventMap, ArgMap extends RcArgMap> = {
 	makeCreateArgs: () => Promise<ArgMap['create']> | ArgMap['create'];
-	createChannel: (...args: OptionalArgs<ArgMap['create']>) => Channel;
+	createChannel: (...args: ArgMap['create']) => Channel;
 	attachListeners: (channel: Channel, listeners: ReconnectableListeners<EventMap>) => () => void;
-	closeChannel: (channel: Channel, ...args: OptionalArgs<ArgMap['close']>) => void;
+	closeChannel: (channel: Channel, reason: string | OptionalArgs<ArgMap['close']>) => void;
 	send: (channel: Channel, message: SendMessage) => void;
+	getChannelState: (channel: Channel) => ReconnectState;
+	buildInternalErrorEvent: (error: Error) => EventMap['error'];
+	buildInternalCloseEvent: (string: string | ArgMap['close']) => EventMap['close'];
 } & ({
 	connectsAtCreation: true;
 } | {

@@ -1,4 +1,4 @@
-import type {Reconnectable} from './reconnect-manager.ts';
+import {type Reconnectable, ReconnectState} from './reconnectable.ts';
 import type {WebSocketEventMap} from './websocket-events.ts';
 
 export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
@@ -61,8 +61,13 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 	return {
 		connectsAtCreation: true,
 
-		closeChannel(channel, code = 1000, reason = 'unknown reason'): void {
-			channel.close(code, reason);
+		closeChannel(channel, args): void {
+			if (Array.isArray(args)) {
+				const [code, reason] = args;
+				channel.close(code, reason);
+			} else {
+				channel.close(3000, args);
+			}
 		},
 
 		attachListeners(channel, {open, close, message, error}) {
@@ -99,5 +104,39 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 			channel.send(message);
 		},
 
+		getChannelState(channel: WebSocket): ReconnectState {
+			switch (channel.readyState) {
+				case WebSocket.OPEN: {
+					return ReconnectState.OPEN;
+				}
+
+				case WebSocket.CONNECTING: {
+					return ReconnectState.CONNECTING;
+				}
+
+				case WebSocket.CLOSING: {
+					return ReconnectState.CLOSING;
+				}
+
+				case WebSocket.CLOSED: {
+					return ReconnectState.CLOSED;
+				}
+			}
+
+			throw new Error('WebSocket readyState supplied is not supported');
+		},
+
+		buildInternalCloseEvent(args) {
+			if (typeof args === 'string') {
+				return new CloseEvent('close', {reason: args});
+			}
+
+			const [code, reason] = args;
+			return new CloseEvent('close', {code, reason});
+		},
+
+		buildInternalErrorEvent(error: Error) {
+			return new ErrorEvent('error', {error});
+		},
 	} satisfies WsReconnectable;
 };

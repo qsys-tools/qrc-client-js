@@ -16,7 +16,7 @@ import {getNextDelay} from './retry-delay.ts';
 import {cloneWsEvent} from './clone-ws-event.ts';
 import {
 	type UrlProvider, type ProtocolsProvider, type WsMessageData, wsReconnectable, type WsReconnectable,
-} from './websocket-reconnect-manager.ts';
+} from './ws-reconnectable.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
 	throw new Error('No globalThis.EventTarget / globalThis.Event');
@@ -243,7 +243,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 			return;
 		}
 
-		this._wsRc.closeChannel(this._ws, code, reason);
+		this._wsRc.closeChannel(this._ws, [code, reason]);
 	}
 
 	/**
@@ -368,7 +368,7 @@ export default class ReconnectingWebSocket extends TypedEventTarget<WebSocketEve
 				this._ws.readyState === this.OPEN
 				|| this._ws.readyState === this.CONNECTING
 			) {
-				this._wsRc.closeChannel(this._ws, code, reason);
+				this._wsRc.closeChannel(this._ws, [code, reason]);
 			}
 
 			this._handleClose(new WsEvents.CloseEvent(code, reason, true));

@@ -7,7 +7,7 @@ export {
 	type UrlProvider,
 	type ProtocolsProvider,
 	type WsMessageData,
-} from './websocket-reconnect-manager.ts';
+} from './ws-reconnectable.ts';
 
 export {
 	type WebsocketEvent,

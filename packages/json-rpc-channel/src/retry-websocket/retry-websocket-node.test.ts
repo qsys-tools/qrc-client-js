@@ -12,7 +12,7 @@ import {
 } from 'vitest';
 import NodeWebSocket, {WebSocketServer, type Server} from 'ws';
 import ReconnectingWebSocket from './retry-websocket.ts';
-import {wsReconnectable} from './websocket-reconnect-manager.ts';
+import {wsReconnectable} from './ws-reconnectable.ts';
 
 const PORT = 50_122;
 const URL = `ws://localhost:${PORT}/`;

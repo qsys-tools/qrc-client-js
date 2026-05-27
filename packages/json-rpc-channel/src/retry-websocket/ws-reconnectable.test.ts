@@ -1,5 +1,5 @@
 import {test, expect} from 'vitest';
-import {getNextUrl, getNextProtocols} from './websocket-reconnect-manager.ts';
+import {getNextUrl, getNextProtocols} from './ws-reconnectable.ts';
 import {getNextDelay} from './retry-delay.ts';
 
 test('URL provider', async () => {
