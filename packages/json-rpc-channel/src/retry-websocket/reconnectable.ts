@@ -15,11 +15,7 @@ type ReconnectableListeners<Map extends ReconnectableEventMap> = {
 };
 
 export type ArgTypes = 'create' | 'connect' | 'close';
-export type RcArgMap = {
-	create: unknown[];
-	connect: unknown[];
-	close: unknown[];
-};
+export type RcArgMap = Record<ArgTypes, unknown[]>;
 
 export type OptionalArgs<T extends unknown[]>
 	= T extends [... infer Rest, infer Last]
@@ -37,6 +33,12 @@ export type Reconnectable<Channel, SendMessage, EventMap extends ReconnectableEv
 	getChannelState: (channel: Channel) => ReconnectState;
 	buildInternalErrorEvent: (error: Error) => EventMap['error'];
 	buildInternalCloseEvent: (string: string | ArgMap['close']) => EventMap['close'];
+	$Infer?: {
+		ArgMap: ArgMap;
+		EventMap: EventMap;
+		SendMessage: SendMessage;
+		Channel: Channel;
+	};
 } & ({
 	connectsAtCreation: true;
 } | {

@@ -18,19 +18,21 @@ export type WsMessageData
 		| ArrayBuffer
 		| Blob
 		| ArrayBufferView<ArrayBuffer>;
-
-export type WsReconnectable = Reconnectable<
-	WebSocket,
-	WsMessageData,
-	WebSocketEventMap,
-	{
+export type WsArgMap
+	= {
 		// eslint-disable-next-line @typescript-eslint/no-restricted-types
 		create: [url: string, protocols: string | string[] | null | undefined];
 		// eslint-disable-next-line @typescript-eslint/no-restricted-types
 		connect: [];
 		close: [code: number | undefined, reason: string | undefined];
-	}
->;
+	};
+
+export type WsReconnectable = Extract<Reconnectable<
+	WebSocket,
+	WsMessageData,
+	WebSocketEventMap,
+	WsArgMap
+>, {connectsAtCreation: true}>;
 
 export async function getNextUrl(url: UrlProvider) {
 	const result = await (typeof url === 'function' ? url() : url);
@@ -53,7 +55,7 @@ export async function getNextProtocols(protocols: ProtocolsProvider) {
 
 let didWarnAboutMissingWebSocket = false;
 
-export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider = null, WS?: typeof WebSocket) => {
+export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider = null, WS?: typeof WebSocket): WsReconnectable => {
 	if (typeof url !== 'string' && typeof url !== 'function' && !(('then' in url) && (typeof url.then === 'function'))) {
 		throw new TypeError('url needs to be a string, a promise for a string, or a function that returns one of those');
 	}
@@ -97,7 +99,9 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 			}
 
 			const WSC = WS ?? WebSocket;
-			return protocols ? new WSC(url, protocols) : new WSC(url);
+			const ws = protocols ? new WSC(url, protocols) : new WSC(url);
+
+			return ws;
 		},
 
 		send(channel, message) {
@@ -106,19 +110,19 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 
 		getChannelState(channel: WebSocket): ReconnectState {
 			switch (channel.readyState) {
-				case WebSocket.OPEN: {
+				case 1: {
 					return ReconnectState.OPEN;
 				}
 
-				case WebSocket.CONNECTING: {
+				case 0: {
 					return ReconnectState.CONNECTING;
 				}
 
-				case WebSocket.CLOSING: {
+				case 2: {
 					return ReconnectState.CLOSING;
 				}
 
-				case WebSocket.CLOSED: {
+				case 3: {
 					return ReconnectState.CLOSED;
 				}
 			}
@@ -138,5 +142,5 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 		buildInternalErrorEvent(error: Error) {
 			return new ErrorEvent('error', {error});
 		},
-	} satisfies WsReconnectable;
+	};
 };

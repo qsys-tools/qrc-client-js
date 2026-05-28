@@ -11,8 +11,9 @@
 import {TypedEventTarget} from 'typescript-event-target';
 import {getNextDelay} from './retry-delay.ts';
 import {
-	type OptionalArgs, type RcArgMap, type Reconnectable, type ReconnectableEventMap, ReconnectState,
+	type OptionalArgs, type Reconnectable, type ReconnectableEventMap, ReconnectState, type RcArgMap,
 } from './reconnectable.ts';
+import {cloneWsEvent} from './clone-ws-event.ts';
 
 export type Options = {
 	maxReconnectionDelay?: number;
@@ -36,7 +37,13 @@ const DEFAULT = {
 	debug: false,
 };
 
-export default class ReconnectionManager<Channel, SendMessage, EventMap extends ReconnectableEventMap, ArgMap extends RcArgMap> extends TypedEventTarget<Pick<EventMap, keyof ReconnectableEventMap>> {
+type AnyReconnectable = Reconnectable<any, any, ReconnectableEventMap, RcArgMap>;
+type Channel<RC extends AnyReconnectable> = RC extends Reconnectable<infer Channel, any, any, any> ? Channel : never;
+type SendMessage<RC extends AnyReconnectable> = RC extends Reconnectable<any, infer SendMessage, any, any> ? SendMessage : never;
+type EventMap<RC extends AnyReconnectable> = RC extends Reconnectable<any, any, infer EventMap, any> ? EventMap : never;
+type ArgMap<RC extends AnyReconnectable> = RC extends Reconnectable<any, any, any, infer ArgMap> ? ArgMap : never;
+
+export default class ReconnectionManager<RC extends Reconnectable<any, any, any, any>> extends TypedEventTarget<Pick<EventMap<RC>, keyof ReconnectableEventMap>> {
 	protected _options: Options;
 	private _unsub: undefined | (() => void);
 	private _retryCount = -1;
@@ -47,12 +54,12 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 	private _closeCalled = false;
 	private readonly _debugLogger = console.log.bind(console);
 
-	private _messageQueue: SendMessage[] = [];
-	private _channel?: Channel;
-	private readonly _reconnectable: Reconnectable<Channel, SendMessage, EventMap, ArgMap>;
+	private _messageQueue: Array<SendMessage<RC>> = [];
+	private _channel?: Channel<RC>;
+	private readonly _reconnectable: Reconnectable<Channel<RC>, SendMessage<RC>, EventMap<RC>, ArgMap<RC>>;
 
 	constructor(
-		reconnectable: Reconnectable<Channel, SendMessage, EventMap, ArgMap>,
+		reconnectable: Reconnectable<Channel<RC>, SendMessage<RC>, EventMap<RC>, ArgMap<RC>>,
 		options: Options = {},
 	) {
 		super();
@@ -69,6 +76,10 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		void this._connect();
 	}
 
+	get messageQueue() {
+		return Object.freeze(this._messageQueue);
+	}
+
 	get retryCount(): number {
 		return Math.max(this._retryCount, 0);
 	}
@@ -81,16 +92,16 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		return this._channel;
 	}
 
-	public onclose: ((event: EventMap['close']) => void) | null = null;
-	public onerror: ((event: EventMap['error']) => void) | null = null;
-	public onmessage: ((event: EventMap['message']) => void) | null = null;
-	public onopen: ((event: EventMap['open']) => void) | null = null;
+	public onclose: ((event: EventMap<RC>['close']) => void) | null = null;
+	public onerror: ((event: EventMap<RC>['error']) => void) | null = null;
+	public onmessage: ((event: EventMap<RC>['message']) => void) | null = null;
+	public onopen: ((event: EventMap<RC>['open']) => void) | null = null;
 
 	/**
 	 * Closes the underlying connection. If the connection is already
 	 * CLOSED, this method does nothing
 	 */
-	public close(...args: OptionalArgs<ArgMap['close']>) {
+	public close(...args: OptionalArgs<ArgMap<RC>['close']>) {
 		this._closeCalled = true;
 		this._shouldReconnect = false;
 		this._clearTimeouts();
@@ -131,7 +142,7 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 	 * Closes the connection or connection attempt and connects again.
 	 * Resets retry counter;
 	 */
-	public reconnect(...args: OptionalArgs<ArgMap['close']>) {
+	public reconnect(...args: OptionalArgs<ArgMap<RC>['close']>) {
 		this._shouldReconnect = true;
 		this._closeCalled = false;
 		this._retryCount = -1;
@@ -145,7 +156,7 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 	/**
 	 * Enqueue specified data to be transmitted to the server over the WebSocket connection
 	 */
-	public send(data: SendMessage) {
+	public send(data: SendMessage<RC>) {
 		if (this._isChannelOpen()) {
 			this._debug('send', data);
 			this._reconnectable.send(this._channel!, data);
@@ -198,13 +209,15 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 
 		try {
 			await this._wait();
-			const createArgs = await this._reconnectable.makeCreateArgs();
+			const createArgs: ArgMap<RC> = await this._reconnectable.makeCreateArgs();
 			if (this._closeCalled) {
 				this._connectLock = false;
 				return;
 			}
 
 			this._channel = this._reconnectable.createChannel(...createArgs);
+			this._postCreate();
+			// @ts-expect-error Types are hard
 			this._debug('connect', ...createArgs);
 			this._connectLock = false;
 			this._addListeners();
@@ -230,12 +243,16 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		}
 	}
 
+	protected _postCreate() {
+		// Empty
+	}
+
 	private _handleTimeout() {
 		this._debug('timeout event');
 		this._handleError(this._reconnectable.buildInternalErrorEvent(new Error('TIMEOUT')));
 	}
 
-	private _disconnect(reason: string | OptionalArgs<ArgMap['close']>) {
+	private _disconnect(reason: string | OptionalArgs<ArgMap<RC>['close']>) {
 		this._clearTimeouts();
 		if (!this._channel) {
 			return;
@@ -260,7 +277,7 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		this._retryCount = 0;
 	}
 
-	private readonly _handleOpen = (event: EventMap['open']) => {
+	private readonly _handleOpen = (event: EventMap<RC>['open']) => {
 		this._debug('open event');
 		const {minUptime = DEFAULT.minUptime} = this._options;
 
@@ -287,11 +304,11 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		this._redispatchEvent('open', event);
 	};
 
-	private _redispatchEvent<T extends keyof ReconnectableEventMap>(type: T, event: EventMap[T]): void {
-		this.dispatchTypedEvent(type, event);
+	private _redispatchEvent<T extends keyof ReconnectableEventMap>(type: T, event: EventMap<RC>[T]): void {
+		this.dispatchTypedEvent(type, cloneWsEvent(event));
 	}
 
-	private readonly _handleMessage = (event: EventMap['message']) => {
+	private readonly _handleMessage = (event: EventMap<RC>['message']) => {
 		this._debug('message event');
 
 		if (this.onmessage) {
@@ -301,7 +318,7 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		this._redispatchEvent('message', event);
 	};
 
-	private readonly _handleError = (event: EventMap['error']) => {
+	private readonly _handleError = (event: EventMap<RC>['error']) => {
 		this._debug('error event', event);
 
 		// OLD: event.message === 'TIMEOUT' ? 'timeout' : undefined,
@@ -318,7 +335,7 @@ export default class ReconnectionManager<Channel, SendMessage, EventMap extends 
 		void this._connect();
 	};
 
-	private readonly _handleClose = (event: EventMap['close']) => {
+	private readonly _handleClose = (event: EventMap<RC>['close']) => {
 		this._debug('close event');
 		this._clearTimeouts();
 
