@@ -1,0 +1,29 @@
+$schema: '../../cache/schemas/template.json'
+
+id: 'ts-package'
+title: 'TypeScript Package'
+description: 'A template for TypeScript packages with build and typecheck tasks.'
+destination: 'packages/[name]'
+
+variables:
+  name:
+    type: string
+    prompt: 'What is the name of the package? (Do NOT include "@qsys-tools/")'
+    required: true
+    order: 1
+  description:
+    type: string
+    prompt: 'Provide a short description for the package:'
+    default: '[name] package'
+    required: true
+    order: 2
+  vitest:
+    type: boolean
+    prompt: 'Would you like to include Vitest for testing?'
+    default: true
+    order: 3
+  cli:
+    type: boolean
+    prompt: 'Will this package include a CLI?'
+    default: false
+    order: 4
