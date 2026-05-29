@@ -1,0 +1,12 @@
+$schema: '../../.moon/cache/schemas/project.json'
+
+layer: library
+language: typescript
+
+dependsOn:
+  - websocket-events
+  - reconnectable
+
+tags:
+  - 'xo'
+  - 'vitest'

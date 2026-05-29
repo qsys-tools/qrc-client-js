@@ -5,9 +5,6 @@
 			"path": "../reconnectable"
 		},
 		{
-			"path": "../retry-websocket"
-		},
-		{
 			"path": "../websocket-events"
 		}
 	],
@@ -24,12 +21,6 @@
 			],
 			"@qsys-tools/websocket-events/*": [
 				"../websocket-events/src/*"
-			],
-			"@qsys-tools/retry-websocket": [
-				"../retry-websocket/src/index.ts"
-			],
-			"@qsys-tools/retry-websocket/*": [
-				"../retry-websocket/src/*"
 			]
 		}
 	}

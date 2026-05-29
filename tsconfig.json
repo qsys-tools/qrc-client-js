@@ -17,6 +17,9 @@
 			"path": "./packages/reconnectable"
 		},
 		{
+			"path": "./packages/retry-websocket"
+		},
+		{
 			"path": "./packages/websocket-events"
 		},
 		{

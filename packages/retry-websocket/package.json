@@ -1,0 +1,35 @@
+{
+	"name": "@qsys-tools/retry-websocket",
+	"version": "0.0.1",
+	"description": "An auto-reconnecting websocket",
+	"author": {
+		"name": "James Talmage",
+		"email": "james.talmage@jrtechnical.com",
+		"url": "http://jrtechnical.com"
+	},
+	"type": "module",
+	"scripts": {},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/qsys-tools/qrc-client-js"
+	},
+	"main": "dist/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"development": "./src/index.ts",
+			"production": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"dependencies": {
+		"@qsys-tools/reconnectable": "workspace:*",
+		"@qsys-tools/websocket-events": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/ws": "catalog:",
+		"vitest": "catalog:",
+		"vitest-monocart-coverage": "catalog:",
+		"ws": "catalog:"
+	}
+}

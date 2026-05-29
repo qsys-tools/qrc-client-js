@@ -38,7 +38,6 @@
 	"dependencies": {
 		"@logtape/logtape": "catalog:",
 		"debug": "catalog:",
-		"partysocket": "catalog:",
 		"pump": "catalog:",
 		"split2": "catalog:",
 		"through2": "catalog:",
@@ -46,7 +45,8 @@
 		"typescript-event-target": "catalog:",
 		"ws": "catalog:",
 		"@qsys-tools/reconnectable": "workspace:*",
-		"@qsys-tools/websocket-events": "workspace:*"
+		"@qsys-tools/websocket-events": "workspace:*",
+		"@qsys-tools/retry-websocket": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/duplexify": "catalog:",

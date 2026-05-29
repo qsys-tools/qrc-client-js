@@ -31,7 +31,6 @@ catalog:
   make-dir: ^5.1.0
   monocart-coverage-reports: ^2.12.11
   p-event: ^7.1.0
-  partysocket: ^1.1.19
   pump: ^3.0.4
   split2: ^4.2.0
   supports-color: ^10.2.2

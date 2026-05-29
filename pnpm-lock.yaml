@@ -72,9 +72,6 @@ catalogs:
     p-event:
       specifier: ^7.1.0
       version: 7.1.0
-    partysocket:
-      specifier: ^1.1.19
-      version: 1.1.19
     pump:
       specifier: ^3.0.4
       version: 3.0.4
@@ -165,15 +162,15 @@ importers:
       '@qsys-tools/reconnectable':
         specifier: workspace:*
         version: link:../reconnectable
+      '@qsys-tools/retry-websocket':
+        specifier: workspace:*
+        version: link:../retry-websocket
       '@qsys-tools/websocket-events':
         specifier: workspace:*
         version: link:../websocket-events
       debug:
         specifier: 'catalog:'
         version: 4.4.3(supports-color@10.2.2)
-      partysocket:
-        specifier: 'catalog:'
-        version: 1.1.19
       pump:
         specifier: 'catalog:'
         version: 3.0.4
@@ -339,6 +336,28 @@ importers:
       vitest-monocart-coverage:
         specifier: 'catalog:'
         version: 4.0.2(vitest@4.1.7)
+
+  packages/retry-websocket:
+    dependencies:
+      '@qsys-tools/reconnectable':
+        specifier: workspace:*
+        version: link:../reconnectable
+      '@qsys-tools/websocket-events':
+        specifier: workspace:*
+        version: link:../websocket-events
+    devDependencies:
+      '@types/ws':
+        specifier: 'catalog:'
+        version: 8.18.1
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.7(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.7)(@vitest/coverage-v8@4.1.7)(vite@8.0.14(@types/node@25.9.1))
+      vitest-monocart-coverage:
+        specifier: 'catalog:'
+        version: 4.0.2(vitest@4.1.7)
+      ws:
+        specifier: 'catalog:'
+        version: 8.20.1
 
   packages/websocket-events:
     devDependencies:
@@ -1774,9 +1793,6 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  event-target-polyfill@0.0.4:
-    resolution: {integrity: sha512-Gs6RLjzlLRdT8X9ZipJdIZI/Y6/HhRLyq9RdDlCsnpxr/+Nn6bU2EFGuC94GjxqhM+Nmij2Vcq98yoHrU8uNFQ==}
-
   event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
@@ -2613,14 +2629,6 @@ packages:
   parse-ms@4.0.0:
     resolution: {integrity: sha512-TXfryirbmq34y8QBwgqCVLi+8oA3oWx2eAnSn62ITyEhEYaWRlVZ2DvMM9eZbMs/RfxPu/PK/aBLyGj4IrqMHw==}
     engines: {node: '>=18'}
-
-  partysocket@1.1.19:
-    resolution: {integrity: sha512-hPwsXSdUc8PKNCinET6TD3JQOxzQ2JaP0bUZQXBVl6UM8UuLn1odgf1LcJXHy4UHSQwWL/RU3AnyhEsGM+W+sg==}
-    peerDependencies:
-      react: '>=17'
-    peerDependenciesMeta:
-      react:
-        optional: true
 
   path-exists@4.0.0:
     resolution: {integrity: sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==}
@@ -5228,8 +5236,6 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  event-target-polyfill@0.0.4: {}
-
   event-target-shim@5.0.1: {}
 
   events@3.3.0: {}
@@ -6022,10 +6028,6 @@ snapshots:
       lines-and-columns: 1.2.4
 
   parse-ms@4.0.0: {}
-
-  partysocket@1.1.19:
-    dependencies:
-      event-target-polyfill: 0.0.4
 
   path-exists@4.0.0: {}
 

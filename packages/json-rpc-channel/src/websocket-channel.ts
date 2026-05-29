@@ -1,5 +1,5 @@
 import {TypedEventTarget} from 'typescript-event-target';
-import RetryWebsocket, {type UrlProvider, type ProtocolsProvider} from './retry-websocket/index.ts';
+import RetryWebsocket, {type UrlProvider, type ProtocolsProvider} from '@qsys-tools/retry-websocket';
 import type {JsonRpcMessage} from './json-rpc.ts';
 import {
 	CmcEvents,
