@@ -1,0 +1,45 @@
+{
+    "name": "@qsys-tools/websocket-events",
+    "version": "0.0.1",
+    "description": "Cross-platform websocket event type declarations and cloning utility.",
+	"author": {
+		"name": "James Talmage",
+		"email": "james.talmage@jrtechnical.com",
+		"url": "http://jrtechnical.com"
+	},
+    "type": "module",
+    "scripts": {
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/qsys-tools/qrc-client-js"
+    },
+	"main": "dist/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"development": "./src/index.ts",
+			"production": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"vitest": "catalog:",
+		"vitest-monocart-coverage": "catalog:"
+	},
+	"xo": [
+		{
+			"files": [
+				"**"
+			],
+			"rules": {
+				"@typescript-eslint/naming-convention": "off",
+				"@stylistic/quote-props": [
+					"error",
+					"consistent-as-needed"
+				]
+			}
+		}
+	]
+}

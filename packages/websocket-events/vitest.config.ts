@@ -1,6 +1,3 @@
----
-skip: {{ not vitest }}
----
 import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
@@ -11,7 +8,7 @@ export default defineConfig({
 			reporter: ['raw', 'console-summary'],
 			provider: 'custom',
 			reportOnFailure: true,
-			reportsDirectory: '../../.moon/cache/coverage/packages/{{ name }}',
+			reportsDirectory: '../../.moon/cache/coverage/packages/websocket-events',
 			customProviderModule: 'vitest-monocart-coverage',
 		},
 	},

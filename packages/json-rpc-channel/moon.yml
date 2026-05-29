@@ -4,6 +4,7 @@ language: typescript
 
 dependsOn:
   - reconnectable
+  - websocket-events
 
 tags:
   - xo

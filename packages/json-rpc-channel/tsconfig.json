@@ -3,6 +3,9 @@
 	"references": [
 		{
 			"path": "../reconnectable"
+		},
+		{
+			"path": "../websocket-events"
 		}
 	],
 	"compilerOptions": {
@@ -12,6 +15,12 @@
 			],
 			"@qsys-tools/reconnectable/*": [
 				"../reconnectable/src/*"
+			],
+			"@qsys-tools/websocket-events": [
+				"../websocket-events/src/index.ts"
+			],
+			"@qsys-tools/websocket-events/*": [
+				"../websocket-events/src/*"
 			]
 		}
 	}

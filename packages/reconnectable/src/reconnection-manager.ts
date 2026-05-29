@@ -13,7 +13,6 @@ import {getNextDelay} from './retry-delay.ts';
 import {
 	type OptionalArgs, type Reconnectable, type ReconnectableEventMap, ReconnectState, type RcArgMap,
 } from './reconnectable.ts';
-import {cloneWsEvent} from './clone-ws-event.ts';
 
 export type Options = {
 	maxReconnectionDelay?: number;
@@ -305,7 +304,17 @@ export class ReconnectionManager<RC extends Reconnectable<any, any, any, any>> e
 	};
 
 	private _redispatchEvent<T extends keyof ReconnectableEventMap>(type: T, event: EventMap<RC>[T]): void {
-		this.dispatchTypedEvent(type, cloneWsEvent(event));
+		if (this._reconnectable.cloneEvent) {
+			this.dispatchTypedEvent(type, this._reconnectable.cloneEvent(type, event));
+		} else {
+			try {
+				this.dispatchTypedEvent(type, event);
+			} catch (error) {
+				console.error(error);
+				console.error(`You cannot redispatch event '${type}'. You must provide a means of cloning it. Either by wrapping attached listeners, or providing a 'cloneEvent' method`);
+				throw error;
+			}
+		}
 	}
 
 	private readonly _handleMessage = (event: EventMap<RC>['message']) => {

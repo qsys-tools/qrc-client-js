@@ -17,6 +17,9 @@
 			"path": "./packages/reconnectable"
 		},
 		{
+			"path": "./packages/websocket-events"
+		},
+		{
 			"path": "packages/qrc-client-js/tsconfig.json"
 		},
 		{

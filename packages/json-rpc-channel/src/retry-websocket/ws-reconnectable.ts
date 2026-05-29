@@ -1,4 +1,5 @@
-import {type Reconnectable, ReconnectState, type WebSocketEventMap} from '@qsys-tools/reconnectable';
+import {type Reconnectable, ReconnectState} from '@qsys-tools/reconnectable';
+import {type WebSocketEventMap, cloneWsEvent} from '@qsys-tools/websocket-events';
 
 export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
 
@@ -61,6 +62,8 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 
 	return {
 		connectsAtCreation: true,
+
+		cloneEvent: (_type, event) => cloneWsEvent(event),
 
 		closeChannel(channel, args): void {
 			if (Array.isArray(args)) {

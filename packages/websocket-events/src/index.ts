@@ -1,17 +1,72 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference types="node"/>
+/// <reference types="node" />
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-type-assertion */
-import {
-	CloseEvent,
-	ErrorEvent,
-	isCloseEvent,
-	isErrorEvent,
-	isMessageEvent,
-	isOpenEvent,
+
+export type IOpenEvent = Event & {
+};
+
+export type ICloseEvent = Event & {
+	code: number;
+	reason: string;
+	wasClean: boolean;
+};
+
+export type IErrorEvent = Event & {
+	message: string;
+	error: Error;
+};
+
+export type WebSocketEventMap = {
+	close: ICloseEvent;
+	error: IErrorEvent;
+	message: MessageEvent;
+	open: IOpenEvent;
+};
+
+export type WebsocketEvent = WebSocketEventMap[keyof WebSocketEventMap];
+
+export class OpenEvent extends Event implements IOpenEvent {
+	constructor() {
+		super('open');
+	}
+}
+
+export class CloseEvent extends Event implements ICloseEvent {
+	constructor(public readonly code: number, public readonly reason: string, public readonly wasClean: boolean) {
+		super('close');
+	}
+}
+
+export class ErrorEvent extends Event implements IErrorEvent {
+	constructor(public readonly error: Error, public readonly message = error.message) {
+		super('error');
+	}
+}
+
+export const WsEvents = {
+	Event,
 	OpenEvent,
-	type WebsocketEvent,
-} from './websocket-events.ts';
+	ErrorEvent,
+	CloseEvent,
+	MessageEvent,
+};
+
+export function isOpenEvent(event: Event): event is IOpenEvent {
+	return event.type === 'open';
+}
+
+export function isMessageEvent(event: Event): event is MessageEvent {
+	return event.type === 'message' && 'data' in event;
+}
+
+export function isCloseEvent(event: Event): event is CloseEvent {
+	return event.type === 'close' && 'code' in event && 'reason' in event;
+}
+
+export function isErrorEvent(event: Event): event is ErrorEvent {
+	return event.type === 'error' && 'message' in event && 'error' in event;
+}
 
 function cloneEventBrowser<E extends WebsocketEvent>(event: E): E {
 	// @ts-expect-error types are hard

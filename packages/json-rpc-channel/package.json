@@ -45,7 +45,8 @@
 		"type-fest": "catalog:",
 		"typescript-event-target": "catalog:",
 		"ws": "catalog:",
-		"@qsys-tools/reconnectable": "workspace:*"
+		"@qsys-tools/reconnectable": "workspace:*",
+		"@qsys-tools/websocket-events": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/duplexify": "catalog:",
