@@ -63,7 +63,9 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 	return {
 		connectsAtCreation: true,
 
-		cloneEvent: (_type, event) => cloneWsEvent(event),
+		cloneEvent(_type, event) {
+			return cloneWsEvent(event);
+		},
 
 		closeChannel(channel, args): void {
 			if (Array.isArray(args)) {

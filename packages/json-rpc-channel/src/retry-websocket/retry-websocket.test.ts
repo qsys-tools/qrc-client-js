@@ -92,6 +92,13 @@ function testDone(
 	test(name, toPromise(fn));
 }
 
+testDone.only = function (
+	name: string,
+	fn: (resolve: () => void, reject: (error: unknown) => void) => void,
+) {
+	test.only(name, toPromise(fn));
+};
+
 testDone('global WebSocket is used if available', done => {
 	const ws = new ReconnectingWebSocket(ERROR_URL, undefined, {maxRetries: 0});
 	ws.onerror = () => {
