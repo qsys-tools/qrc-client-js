@@ -27,19 +27,5 @@
 	"devDependencies": {
 		"vitest": "catalog:",
 		"vitest-monocart-coverage": "catalog:"
-	},
-	"xo": [
-		{
-			"files": [
-				"**"
-			],
-			"rules": {
-				"@typescript-eslint/naming-convention": "off",
-				"@stylistic/quote-props": [
-					"error",
-					"consistent-as-needed"
-				]
-			}
-		}
-	]
+	}
 }

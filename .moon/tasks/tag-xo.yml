@@ -5,8 +5,13 @@ inheritedBy:
 
 tasks:
   lint:
+    options:
+      runFromWorkspaceRoot: true
     command:
       - xo
+      - --config
+      - './xo.config.js'
+      - '--cwd=${projectRoot}'
     inputs:
       # Source and test files
       - '@group(sources)'
@@ -20,6 +25,7 @@ tasks:
       - 'types/**/*'
       - 'tsconfig.json'
       - '/tsconfig.options.json'
+      - '/*.config.*'
 
   fix-lint:
     options:

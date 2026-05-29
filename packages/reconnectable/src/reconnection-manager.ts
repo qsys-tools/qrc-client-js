@@ -331,7 +331,7 @@ export class ReconnectionManager<RC extends Reconnectable<any, any, any, any>> e
 		this._debug('error event', event);
 
 		// OLD: event.message === 'TIMEOUT' ? 'timeout' : undefined,
-		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions,@typescript-eslint/no-base-to-string
+
 		this._disconnect(`Error Event ${event}`);
 
 		if (this.onerror) {
