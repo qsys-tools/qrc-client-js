@@ -258,16 +258,24 @@ export class ReconnectionManager<RC extends Reconnectable<any, any, any, any>> e
 		}
 
 		this._removeListeners();
-		try {
-			if (
-				this._isChannelOpen() ?? this._isChannelConnecting()
-			) {
-				this._reconnectable.closeChannel(this._channel, reason);
-			}
 
-			this._handleClose(this._reconnectable.buildInternalCloseEvent(reason));
-		} catch {
-			// ignore
+		if (
+			this._isChannelOpen() ?? this._isChannelConnecting()
+		) {
+			try {
+				this._reconnectable.closeChannel(this._channel, reason);
+			} catch (error) {
+				console.error(error);
+				// ignore
+			}
+		}
+
+		const syntheticCloseEvent = this._reconnectable.buildInternalCloseEvent(reason);
+
+		try {
+			this._handleClose(syntheticCloseEvent);
+		} catch (error) {
+			console.error('error in handle_close for reason', reason, error);
 		}
 	}
 

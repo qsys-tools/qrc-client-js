@@ -1,5 +1,5 @@
 import {type Reconnectable, ReconnectState} from '@qsys-tools/reconnectable';
-import {type WebSocketEventMap, cloneWsEvent} from '@qsys-tools/websocket-events';
+import {type WebSocketEventMap, cloneWsEvent, CloseEvent} from '@qsys-tools/websocket-events';
 
 export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
 
@@ -136,11 +136,11 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 
 		buildInternalCloseEvent(args) {
 			if (typeof args === 'string') {
-				return new CloseEvent('close', {reason: args});
+				return new CloseEvent(1000, args, true);
 			}
 
 			const [code, reason] = args;
-			return new CloseEvent('close', {code, reason});
+			return new CloseEvent(code ?? 1000, reason ?? 'unknown reason', true);
 		},
 
 		buildInternalErrorEvent(error: Error) {
