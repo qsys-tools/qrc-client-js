@@ -1,10 +1,10 @@
-import type {JsonRpcMessage} from './json-rpc.ts';
 import {
 	type IOpenEvent,
 	type ICloseEvent,
 	type IErrorEvent,
 	WsEvents,
-} from './retry-websocket/index.ts';
+} from '@qsys-tools/reconnectable';
+import type {JsonRpcMessage} from './json-rpc.ts';
 
 export {
 	type IOpenEvent,
@@ -13,7 +13,7 @@ export {
 	isOpenEvent,
 	isCloseEvent,
 	isErrorEvent,
-} from './retry-websocket/index.ts';
+} from '@qsys-tools/reconnectable';
 
 export type IJsonRpcMessageEvent = Event & {
 	message: JsonRpcMessage;

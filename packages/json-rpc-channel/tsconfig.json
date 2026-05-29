@@ -1,3 +1,18 @@
 {
-	"extends": "../../tsconfig.options.json"
+	"extends": "../../tsconfig.options.json",
+	"references": [
+		{
+			"path": "../reconnectable"
+		}
+	],
+	"compilerOptions": {
+		"paths": {
+			"@qsys-tools/reconnectable": [
+				"../reconnectable/src/index.ts"
+			],
+			"@qsys-tools/reconnectable/*": [
+				"../reconnectable/src/*"
+			]
+		}
+	}
 }

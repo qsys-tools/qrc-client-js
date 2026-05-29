@@ -3,8 +3,6 @@ export const enum ReconnectState {
 	OPEN = 1,
 	CLOSING = 2,
 	CLOSED = 3,
-	RECONNECTING = 4,
-	IDLE = 5,
 }
 
 export type RcEventNames = 'open' | 'close' | 'error' | 'message';

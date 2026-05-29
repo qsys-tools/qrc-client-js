@@ -1,7 +1,7 @@
 {
 	"extends": "./tsconfig.options.json",
 	"compilerOptions": {
-		"rootDir": ".",
+		"rootDir": "."
 	},
 	"references": [
 		{
@@ -14,12 +14,17 @@
 			"path": "./packages/qrc-client-js"
 		},
 		{
+			"path": "./packages/reconnectable"
+		},
+		{
 			"path": "packages/qrc-client-js/tsconfig.json"
 		},
 		{
 			"path": "packages/qrc-client-js/tsconfig.json"
 		}
 	],
-	"include": ["mcr.config.ts"],
+	"include": [
+		"mcr.config.ts"
+	],
 	"files": []
 }

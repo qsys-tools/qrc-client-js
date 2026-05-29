@@ -1,16 +1,7 @@
-/* eslint-disable @typescript-eslint/member-ordering,@typescript-eslint/no-restricted-types */
-// TODO: lose this eslint-disable
-
-/*!
- * Reconnecting WebSocket
- * by Pedro Ladaria <pedro.ladaria@gmail.com>
- * https://github.com/pladaria/reconnecting-websocket
- * License MIT
- */
+import {ReconnectionManager} from '@qsys-tools/reconnectable';
 import {
 	type UrlProvider, type ProtocolsProvider, wsReconnectable, type WsReconnectable,
 } from './ws-reconnectable.ts';
-import ReconnectionManager from './reconnection-manager.ts';
 
 if (!globalThis.EventTarget || !globalThis.Event) {
 	throw new Error('No globalThis.EventTarget / globalThis.Event');

@@ -1,5 +1,4 @@
-import {type Reconnectable, ReconnectState} from './reconnectable.ts';
-import type {WebSocketEventMap} from './websocket-events.ts';
+import {type Reconnectable, ReconnectState, type WebSocketEventMap} from '@qsys-tools/reconnectable';
 
 export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
 

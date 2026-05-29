@@ -1,0 +1,62 @@
+{
+	"name": "@qsys-tools/reconnectable",
+	"version": "0.0.1",
+	"description": "Create auto-reconnecting communication channels from whatever backing transport protocol you want.",
+	"license": "MIT",
+	"author": {
+		"name": "James Talmage",
+		"email": "james@talmage.io",
+		"url": "http://jrtechnical.com"
+	},
+	"type": "module",
+	"engines": {
+		"node": ">=22.6"
+	},
+	"scripts": {},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/qsys-tools/qrc-client-js"
+	},
+	"main": "dist/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"development": "./src/index.ts",
+			"production": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"reconnect",
+		"retry",
+		"socket",
+		"communication",
+		"protocol"
+	],
+	"dependencies": {
+		"typescript-event-target": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:",
+		"vitest-monocart-coverage": "catalog:"
+	},
+	"xo": [
+		{
+			"files": [
+				"**"
+			],
+			"rules": {
+				"@typescript-eslint/naming-convention": "off",
+				"@stylistic/quote-props": [
+					"error",
+					"consistent-as-needed"
+				]
+			}
+		}
+	]
+}

@@ -3,6 +3,11 @@
 		"rootDir": "${configDir}/src",
 		"outDir": "${configDir}/dist",
 		"tsBuildInfoFile": "${configDir}/dist/tsconfig.tsbuildinfo",
+		"typeRoots": [
+			"${configDir}/node_modules/@types",
+			"${configDir}/@types"
+		],
+		"preserveSymlinks": false,
 		"composite": true,
 		"incremental": true,
 		"noEmit": false,

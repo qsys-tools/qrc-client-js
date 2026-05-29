@@ -3,24 +3,19 @@
 	"version": "0.4.0",
 	"description": "JSON RPC over tcp streams or websockets.",
 	"license": "MIT",
-	"repository": "qsys-tools/qrc-client-js",
 	"author": {
 		"name": "James Talmage",
 		"email": "james.talmage@jrtechnical.com",
 		"url": "http://jrtechnical.com"
 	},
+	"type": "module",
 	"engines": {
 		"node": ">=22.6"
 	},
-	"scripts": {
-		"build": "tsc -b",
-		"prepublishOnly": "npm test && npm run test-noop",
-		"test": "xo && tsc -b && ava",
-		"lint": "xo",
-		"format": "xo --fix",
-		"test-only": "ava",
-		"test-noop": "ava -- --noop-validator",
-		"generate-types": "node src/validation/_generate-types.ts > src/validation/generated-types.ts"
+	"scripts": {},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/qsys-tools/qrc-client-js"
 	},
 	"main": "dist/index.js",
 	"exports": {
@@ -31,7 +26,6 @@
 			"default": "./dist/index.js"
 		}
 	},
-	"type": "module",
 	"files": [
 		"dist"
 	],
@@ -50,7 +44,8 @@
 		"through2": "catalog:",
 		"type-fest": "catalog:",
 		"typescript-event-target": "catalog:",
-		"ws": "catalog:"
+		"ws": "catalog:",
+		"@qsys-tools/reconnectable": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/duplexify": "catalog:",

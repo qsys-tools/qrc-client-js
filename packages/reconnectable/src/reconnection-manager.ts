@@ -43,7 +43,7 @@ type SendMessage<RC extends AnyReconnectable> = RC extends Reconnectable<any, in
 type EventMap<RC extends AnyReconnectable> = RC extends Reconnectable<any, any, infer EventMap, any> ? EventMap : never;
 type ArgMap<RC extends AnyReconnectable> = RC extends Reconnectable<any, any, any, infer ArgMap> ? ArgMap : never;
 
-export default class ReconnectionManager<RC extends Reconnectable<any, any, any, any>> extends TypedEventTarget<Pick<EventMap<RC>, keyof ReconnectableEventMap>> {
+export class ReconnectionManager<RC extends Reconnectable<any, any, any, any>> extends TypedEventTarget<Pick<EventMap<RC>, keyof ReconnectableEventMap>> {
 	protected _options: Options;
 	private _unsub: undefined | (() => void);
 	private _retryCount = -1;

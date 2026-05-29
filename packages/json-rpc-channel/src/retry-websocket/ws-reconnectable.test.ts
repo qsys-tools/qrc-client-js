@@ -1,6 +1,6 @@
 import {test, expect} from 'vitest';
+import {getNextDelay} from '@qsys-tools/reconnectable';
 import {getNextUrl, getNextProtocols} from './ws-reconnectable.ts';
-import {getNextDelay} from './retry-delay.ts';
 
 test('URL provider', async () => {
 	const url = 'example.com';
