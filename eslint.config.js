@@ -1,5 +1,4 @@
 import xo from 'xo';
-import pkg from './package.json' with {type: 'json'};
 
 const config = xo.xoToEslintConfig([
 	{space: false, prettier: 'compat'},
@@ -9,7 +8,6 @@ const config = xo.xoToEslintConfig([
 			'@stylistic/indent-binary-ops': 'off',
 		},
 	},
-	...pkg.xo,
 ]);
 
 for (const cf of config) {

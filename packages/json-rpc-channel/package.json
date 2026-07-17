@@ -63,8 +63,7 @@
 		"p-event": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"vitest-monocart-coverage": "catalog:",
-		"xo": "catalog:"
+		"vitest-monocart-coverage": "catalog:"
 	},
 	"ava": {
 		"extensions": [
