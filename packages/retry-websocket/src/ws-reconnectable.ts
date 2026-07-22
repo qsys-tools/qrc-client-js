@@ -1,5 +1,10 @@
 import {type Reconnectable, ReconnectState} from '@qsys-tools/reconnectable';
-import {type WebSocketEventMap, cloneWsEvent, CloseEvent} from '@qsys-tools/websocket-events';
+import {
+	type WebSocketEventMap,
+	cloneWsEvent,
+	CloseEvent,
+	ErrorEvent,
+} from '@qsys-tools/websocket-events';
 
 export type UrlProvider = string | Promise<string> | (() => string) | (() => Promise<string>);
 
@@ -144,7 +149,7 @@ export const wsReconnectable = (url: UrlProvider, protocols: ProtocolsProvider =
 		},
 
 		buildInternalErrorEvent(error: Error) {
-			return new ErrorEvent('error', {error});
+			return new ErrorEvent(error);
 		},
 	};
 };
